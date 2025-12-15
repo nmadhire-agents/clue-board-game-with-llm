@@ -1,0 +1,96 @@
+# Clue Game Tasks Configuration
+# Tasks for game turns and moderator actions
+
+# Moderator task to announce game start and state
+announce_game_start_task:
+  description: >
+    Announce the start of the Clue game. Provide a summary of:
+    1. The players participating and their character names
+    2. The objective of the game (find the suspect, weapon, and room)
+    3. The current game state including each player's starting location
+    
+    Be enthusiastic and set the mood for a mystery game!
+  expected_output: >
+    A dramatic and engaging announcement of the game start with player introductions
+    and a reminder of the game objective.
+  agent: game_moderator
+
+# Moderator task to announce current turn
+announce_turn_task:
+  description: >
+    Announce whose turn it is. Provide:
+    1. The current player's name and character
+    2. Their current location
+    3. A brief summary of the game state
+    4. Reminder that they should move to a room and make a suggestion
+    
+    Current player: {current_player}
+    Turn number: {turn_number}
+  expected_output: >
+    Clear announcement of the current turn with relevant game state information.
+  agent: game_moderator
+
+# Player task to take their turn
+player_turn_task:
+  description: >
+    It's your turn in the Clue game! You are {player_name}.
+    
+    Your objective is to solve the mystery by figuring out:
+    - WHO committed the murder (which suspect)
+    - WHAT weapon was used
+    - WHERE it happened (which room)
+    
+    On your turn, you should:
+    1. First, check your cards to know what's definitely NOT the solution
+    2. Review your knowledge from previous suggestions
+    3. Check your current location and available moves
+    4. Move to a room you want to investigate
+    5. Make a suggestion about the suspect and weapon (the room is your current room)
+    6. Analyze the response - if someone disproves it, that card is NOT the solution
+    7. If you're confident you know the solution, you may make an accusation
+    
+    STRATEGY TIPS:
+    - Cards in YOUR hand are definitely NOT the solution
+    - Cards shown to you by others are NOT the solution
+    - If NO ONE can disprove a suggestion, those items are likely the solution
+    - Only make an accusation when you're very confident - wrong accusations eliminate you!
+    
+    Take your turn now. Think step by step about what you know and what to do.
+  expected_output: >
+    A complete turn including:
+    1. Analysis of current knowledge
+    2. Movement decision and execution
+    3. A strategic suggestion
+    4. Deduction based on the suggestion result
+    5. Decision whether to accuse or wait
+  agent: player_scarlet  # This will be dynamically assigned
+
+# Moderator task to summarize a suggestion
+summarize_suggestion_task:
+  description: >
+    A suggestion has been made. Summarize what happened:
+    
+    Suggester: {suggester}
+    Suggestion: {suspect} with the {weapon} in the {room}
+    Disproven by: {disproven_by}
+    
+    Announce this to all players and remind them to update their notes.
+  expected_output: >
+    Clear announcement of the suggestion and its outcome without revealing
+    which specific card was shown (only the suggester knows that).
+  agent: game_moderator
+
+# Moderator task to announce game end
+announce_game_end_task:
+  description: >
+    The game has ended! Announce the results:
+    
+    Winner: {winner}
+    Solution: {suspect} with the {weapon} in the {room}
+    Total turns: {total_turns}
+    
+    Congratulate the winner and reveal the solution to all players.
+  expected_output: >
+    A dramatic announcement of the game's conclusion with the solution reveal
+    and congratulations to the winner.
+  agent: game_moderator

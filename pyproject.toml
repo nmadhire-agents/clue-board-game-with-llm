@@ -1,0 +1,37 @@
+[project]
+name = "clue-game"
+version = "0.1.0"
+description = "Multi-agent Clue board game using CrewAI with 6 AI players and a moderator, following official Cluedo rules"
+readme = "README.md"
+authors = [
+    { name = "Naveen Madhire", email = "naveen.madhire@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "crewai>=1.7.0",
+    "crewai-tools>=1.7.0",
+    "pydantic>=2.11.10",
+    "python-dotenv>=1.1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
+
+[project.scripts]
+clue-game = "clue_game:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/clue_game"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
