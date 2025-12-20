@@ -15,7 +15,83 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 # Set environment variable before importing
 os.environ["CREWAI_TRACING_ENABLED"] = "false"
 
-from clue_game.main import retry_with_backoff
+from clue_game.main import retry_with_backoff, get_error_details
+
+
+class TestGetErrorDetails:
+    """Test the get_error_details function."""
+    
+    def test_basic_exception(self):
+        """Should extract type and message from basic exception."""
+        exc = ValueError("Something went wrong")
+        details = get_error_details(exc)
+        
+        assert "Type: ValueError" in details
+        assert "Message: Something went wrong" in details
+    
+    def test_exception_with_cause(self):
+        """Should include cause information when present."""
+        try:
+            try:
+                raise ConnectionError("Network failed")
+            except ConnectionError as e:
+                raise ValueError("LLM call failed") from e
+        except ValueError as exc:
+            details = get_error_details(exc)
+        
+        assert "Type: ValueError" in details
+        assert "Caused by: ConnectionError" in details
+    
+    def test_exception_with_status_code(self):
+        """Should include status code when present."""
+        exc = Exception("API error")
+        exc.status_code = 429
+        details = get_error_details(exc)
+        
+        assert "Status Code: 429" in details
+    
+    def test_exception_with_response(self):
+        """Should include response details when present."""
+        mock_response = Mock()
+        mock_response.status_code = 503
+        mock_response.text = "Service Unavailable"
+        
+        exc = Exception("API error")
+        exc.response = mock_response
+        details = get_error_details(exc)
+        
+        assert "Response Status: 503" in details
+        assert "Response Body: Service Unavailable" in details
+    
+    def test_exception_with_error_code(self):
+        """Should include error code when present."""
+        exc = Exception("API error")
+        exc.code = "RATE_LIMIT_EXCEEDED"
+        details = get_error_details(exc)
+        
+        assert "Error Code: RATE_LIMIT_EXCEEDED" in details
+    
+    def test_exception_with_error_details(self):
+        """Should include error details attribute when present."""
+        exc = Exception("API error")
+        exc.error = {"message": "Quota exceeded", "retry_after": 60}
+        details = get_error_details(exc)
+        
+        assert "Error Details:" in details
+        assert "Quota exceeded" in details
+    
+    def test_long_response_text_truncated(self):
+        """Should truncate long response text."""
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_response.text = "A" * 1000  # Very long text
+        
+        exc = Exception("API error")
+        exc.response = mock_response
+        details = get_error_details(exc)
+        
+        # Should be truncated to 500 chars
+        assert len(details) < 1000
 
 
 class TestRetryWithBackoff:

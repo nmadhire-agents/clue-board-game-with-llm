@@ -27,6 +27,49 @@ from clue_game.crew import (
 load_dotenv()
 
 
+def get_error_details(exception):
+    """
+    Extract detailed error information from an exception.
+    
+    Args:
+        exception: The exception to analyze
+        
+    Returns:
+        A formatted string with error details
+    """
+    error_info = []
+    error_info.append(f"Type: {type(exception).__name__}")
+    error_info.append(f"Message: {str(exception)}")
+    
+    # Check for nested exceptions or cause
+    if hasattr(exception, '__cause__') and exception.__cause__:
+        error_info.append(f"Caused by: {type(exception.__cause__).__name__}: {exception.__cause__}")
+    
+    # Check for HTTP status codes (common in API errors)
+    if hasattr(exception, 'status_code'):
+        error_info.append(f"Status Code: {exception.status_code}")
+    if hasattr(exception, 'response'):
+        response = exception.response
+        if hasattr(response, 'status_code'):
+            error_info.append(f"Response Status: {response.status_code}")
+        if hasattr(response, 'text'):
+            # Truncate long responses
+            text = response.text[:500] if len(response.text) > 500 else response.text
+            error_info.append(f"Response Body: {text}")
+    
+    # Check for error codes
+    if hasattr(exception, 'code'):
+        error_info.append(f"Error Code: {exception.code}")
+    if hasattr(exception, 'error'):
+        error_info.append(f"Error Details: {exception.error}")
+    
+    # Check for args with additional info
+    if hasattr(exception, 'args') and len(exception.args) > 1:
+        error_info.append(f"Additional Args: {exception.args[1:]}")
+    
+    return " | ".join(error_info)
+
+
 def retry_with_backoff(func, max_retries=3, base_delay=5):
     """
     Retry a function with exponential backoff.
@@ -52,14 +95,17 @@ def retry_with_backoff(func, max_retries=3, base_delay=5):
             return result
         except Exception as e:
             last_exception = e
+            error_details = get_error_details(e)
             if attempt < max_retries:
                 delay = base_delay * (2 ** attempt)  # Exponential backoff: 5, 10, 20 seconds
-                sys.stdout.write(f"\n⚠️ Attempt {attempt + 1} failed: {e}\n")
+                sys.stdout.write(f"\n⚠️ Attempt {attempt + 1} failed\n")
+                sys.stdout.write(f"   📋 Error: {error_details}\n")
                 sys.stdout.write(f"🔄 Retrying in {delay} seconds...\n")
                 sys.stdout.flush()
                 time.sleep(delay)
             else:
                 sys.stdout.write(f"\n❌ All {max_retries + 1} attempts failed\n")
+                sys.stdout.write(f"   📋 Final Error: {error_details}\n")
                 sys.stdout.flush()
     raise last_exception
 
@@ -75,13 +121,19 @@ PLAYER_CONFIGS = [
 ]
 
 
-def run_game(max_turns: int = 20):
+def run_game(num_players: int = 6, max_turns: int = 50):
     """
     Run a complete game of Clue with AI agents.
     
     Args:
+        num_players: Number of players (3-6)
         max_turns: Maximum number of turns before game ends in a draw
     """
+    # Validate number of players
+    if num_players < 3 or num_players > 6:
+        print("❌ Error: Number of players must be between 3 and 6")
+        return None
+    
     print("\n" + "=" * 60)
     print("🔍 CLUE: THE MYSTERY GAME WITH AI AGENTS 🔍")
     print("=" * 60 + "\n")
@@ -90,7 +142,8 @@ def run_game(max_turns: int = 20):
     game_state = reset_game_state()
     reset_all_notebooks()  # Reset deterministic notebooks for new game
     
-    player_names = [p["name"] for p in PLAYER_CONFIGS]
+    # Select the first N players
+    player_names = [p["name"] for p in PLAYER_CONFIGS[:num_players]]
     game_state.setup_game(player_names)
     
     # Track which players have had their first turn (for notebook init)
@@ -99,16 +152,18 @@ def run_game(max_turns: int = 20):
     # Create the crew instance
     clue_crew = ClueGameCrew()
     
-    # Get agent instances
+    # Get agent instances - only for selected players
     moderator = clue_crew.game_moderator()
-    player_agents = {
-        "Scarlet": clue_crew.player_scarlet(),
-        "Mustard": clue_crew.player_mustard(),
-        "Green": clue_crew.player_green(),
-        "Peacock": clue_crew.player_peacock(),
-        "Plum": clue_crew.player_plum(),
-        "White": clue_crew.player_white(),
+    all_agents = {
+        "Scarlet": clue_crew.player_scarlet,
+        "Mustard": clue_crew.player_mustard,
+        "Green": clue_crew.player_green,
+        "Peacock": clue_crew.player_peacock,
+        "Plum": clue_crew.player_plum,
+        "White": clue_crew.player_white,
     }
+    # Only instantiate agents for players in this game
+    player_agents = {name: all_agents[name]() for name in player_names}
     
     # Announce game start
     print("\n📣 MODERATOR ANNOUNCEMENT:")
@@ -280,12 +335,13 @@ def main():
         if sys.argv[1] == "demo":
             run_single_turn_demo()
         elif sys.argv[1] == "game":
-            max_turns = int(sys.argv[2]) if len(sys.argv) > 2 else 20
-            run_game(max_turns)
+            num_players = int(sys.argv[2]) if len(sys.argv) > 2 else 6
+            run_game(num_players)
         else:
-            print("Usage: python -m clue_game.main [demo|game [max_turns]]")
+            print("Usage: python -m clue_game.main [demo|game [num_players]]")
+            print("  num_players: 3-6 (default: 6)")
     else:
-        # Default: run full game
+        # Default: run full game with 6 players
         run_game()
 
 
