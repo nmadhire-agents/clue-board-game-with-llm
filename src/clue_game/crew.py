@@ -216,58 +216,64 @@ def create_player_turn_crew(player_name: str, player_agent: Agent, moderator: Ag
         """
     
     turn_task = Task(
-        description=f"""
-        It's your turn in the Clue game! You are {player_name}.
+                description=f"""
+          It's your turn in the Clue game! You are {player_name}.
         
-        Your objective is to solve the mystery by figuring out:
-        - WHO committed the murder (which suspect)
-        - WHAT weapon was used  
-        - WHERE it happened (which room)
+          Your objective is to solve the mystery by figuring out:
+          - WHO committed the murder (which suspect)
+          - WHAT weapon was used  
+          - WHERE it happened (which room)
         
-        {init_instruction}
+          {init_instruction}
         
-        ═══════════════════════════════════════════════════════════════
-        CRITICAL: USE YOUR DETECTIVE NOTEBOOK TOOLS!
-        ═══════════════════════════════════════════════════════════════
+          ═══════════════════════════════════════════════════════════════
+          AUTONOMOUS AGENT LOOP: Perceive → Reason → Plan → Act
+          ═══════════════════════════════════════════════════════════════
+          For each turn, follow this structure:
         
-        Your notebook maintains a DETERMINISTIC grid of card ownership.
-        DO NOT try to remember cards from conversation - USE THE NOTEBOOK!
+          1. **Perceive**: Observe your current environment and game state.
+              - Use tools to get your cards, current location, notebook grid, unknown cards, and event log.
+          2. **Reason**: Analyze your observations.
+              - Deduce what you know and what you need to learn. Use your notebook to update your knowledge.
+          3. **Plan**: Formulate a plan to achieve your goal (solving the mystery).
+              - Decide whether to make an accusation, move, or make a suggestion based on your reasoning.
+          4. **Act**: Execute your plan using the available tools.
+              - Move, make a suggestion, record results, or make an accusation as appropriate.
         
-        NOTEBOOK TOOLS (use these, not your memory!):
-        • "Get Unknown Cards" - See what cards are still unknown
-        • "Get Possible Solution" - Check if you can make an accusation
-        • "Get Strategic Suggestion" - Get recommended suggestion
-        • "View Notebook Grid" - See your full deduction grid
-        • "Record Suggestion In Notebook" - After ANY suggestion, record it!
-        • "Mark Player Has Card" - When shown a card
+          Always use your detective notebook tools to track information deterministically. Do not rely on memory—update and consult your notebook at every step.
         
-        ═══════════════════════════════════════════════════════════════
+          NOTEBOOK TOOLS (use these, not your memory!):
+          • "Get Unknown Cards" - See what cards are still unknown
+          • "Get Possible Solution" - Check if you can make an accusation
+          • "Get Strategic Suggestion" - Get recommended suggestion
+          • "View Notebook Grid" - See your full deduction grid
+          • "Record Suggestion In Notebook" - After ANY suggestion, record it!
+          • "Mark Player Has Card" - When shown a card
         
-        YOUR TURN STEPS:
-        1. Check "Get Possible Solution" - Can you accuse yet?
-        2. If not ready to accuse, check "Get Unknown Cards"
-        3. Use "Get Strategic Suggestion" with your current room
-        4. Move to a strategic room using "Move To Room"
-        5. Make a suggestion using "Make Suggestion"
-        6. IMPORTANT: Record the result with "Record Suggestion In Notebook"
-        7. Check "Get Possible Solution" again after recording
-        8. Only use "Make Accusation" if solution is confirmed!
+          ═══════════════════════════════════════════════════════════════
         
-        IMPORTANT: Always pass your player name "{player_name}" to ALL tools.
+          YOUR TURN STEPS (use the autonomy loop):
+          1. Perceive: Gather all available information about your state and the board.
+          2. Reason: Analyze your notebook and observations to determine your best options.
+          3. Plan: Decide your next action (accuse, move, suggest, etc.).
+          4. Act: Use the appropriate tool(s) to carry out your plan.
+          5. After acting, update your notebook and re-evaluate if you can solve the case.
         
-        ⚠️ ACCUSATION WARNING: Wrong accusation = ELIMINATED!
-        Only accuse when "Get Possible Solution" shows all three confirmed!
+          IMPORTANT: Always pass your player name "{player_name}" to ALL tools.
         
-        Take your turn now. Think step by step and USE YOUR NOTEBOOK.
-        """,
-        expected_output="""
-        A brief summary in this exact format:
-        LOCATION: [room you are in]
-        ACTION: [moved to X / stayed in X]
-        SUGGESTION: [Suspect, Weapon, Room] or "None"
-        RESULT: [Card shown by Player / No one could disprove / None]
-        STATUS: [X suspects, Y weapons, Z rooms remaining]
-        """,
+          ⚠️ ACCUSATION WARNING: Wrong accusation = ELIMINATED!
+          Only accuse when "Get Possible Solution" shows all three confirmed!
+        
+          Take your turn now. Follow the Perceive → Reason → Plan → Act loop and USE YOUR NOTEBOOK.
+          """,
+                expected_output="""
+          A brief summary in this exact format:
+          LOCATION: [room you are in]
+          ACTION: [moved to X / stayed in X]
+          SUGGESTION: [Suspect, Weapon, Room] or "None"
+          RESULT: [Card shown by Player / No one could disprove / None]
+          STATUS: [X suspects, Y weapons, Z rooms remaining]
+          """,
         agent=player_agent,
     )
     
