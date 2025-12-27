@@ -216,11 +216,12 @@ class TestMovement:
         game.setup_game(["Test", "Other"])
         player = game.players[0]
         
-        clue = game.get_random_clue(player)
+        clue_result = game.get_random_clue(player)
         
         # Clue should be about a card NOT in solution
-        if clue:
-            assert "NOT the murder" in clue
+        if clue_result:
+            clue_text, holder_name = clue_result
+            assert "NOT the murder" in clue_text
             # Verify the clue doesn't reveal solution cards
             solution_names = {
                 game.solution["suspect"].name,
@@ -228,7 +229,10 @@ class TestMovement:
                 game.solution["room"].name,
             }
             for name in solution_names:
-                assert name not in clue
+                assert name not in clue_text
+            # Holder should be a player name (since clue is about a non-solution card held by someone)
+            if holder_name:
+                assert any(p.name == holder_name for p in game.players)
     
     def test_magnifying_glass_counts_as_one_for_movement(self):
         """Magnifying glass (rolled as 1) should count as 1 for movement."""

@@ -802,12 +802,15 @@ class GameState:
         magnifying_count = (1 if die1 == 1 else 0) + (1 if die2 == 1 else 0)
         return die1, die2, magnifying_count
     
-    def get_random_clue(self, player: Player) -> Optional[str]:
+    def get_random_clue(self, player: Player) -> Optional[Tuple[str, Optional[str]]]:
         """
         Get a random clue for the magnifying glass ability.
         
-        Returns a hint about a card that is NOT in the solution,
-        helping the player narrow down possibilities.
+        Returns a tuple of (clue_text, holder_name) where:
+        - clue_text: A hint about a card that is NOT in the solution
+        - holder_name: The name of the player who holds this card (or None if in solution)
+        
+        This helps the player narrow down possibilities.
         """
         # Collect all cards NOT in solution and NOT in player's hand
         player_card_names = {c.name for c in player.cards}
@@ -816,6 +819,12 @@ class GameState:
             self.solution["weapon"].name,
             self.solution["room"].name,
         }
+        
+        # Build a map of who holds each card
+        card_holders = {}
+        for p in self.players:
+            for card in p.cards:
+                card_holders[card.name] = p.name
         
         # Build list of cards that could be revealed as clues
         all_cards = []
@@ -833,7 +842,9 @@ class GameState:
             return None
         
         card_type, card_name = random.choice(all_cards)
-        return f"{card_name} is NOT the murder {card_type}"
+        holder_name = card_holders.get(card_name)
+        clue_text = f"{card_name} is NOT the murder {card_type}"
+        return (clue_text, holder_name)
     
     def move_suspect_to_room(self, suspect_name: str, room: Room) -> Optional[Player]:
         """

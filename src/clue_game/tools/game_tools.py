@@ -155,10 +155,15 @@ def roll_dice(player_name: str) -> str:
         sys.stdout.write(f"    🔍 MAGNIFYING GLASS! {player_name} gets a free clue!\n")
         
         for _ in range(magnifying_count):
-            clue = game_state.get_random_clue(player)
-            if clue:
-                result += f"  💡 CLUE: {clue}\n"
-                sys.stdout.write(f"    💡 CLUE: {clue}\n")
+            clue_result = game_state.get_random_clue(player)
+            if clue_result:
+                clue_text, holder_name = clue_result
+                if holder_name:
+                    result += f"  💡 CLUE: {clue_text} (shown by {holder_name})\n"
+                    sys.stdout.write(f"    💡 CLUE: {clue_text} (shown by {holder_name})\n")
+                else:
+                    result += f"  💡 CLUE: {clue_text}\n"
+                    sys.stdout.write(f"    💡 CLUE: {clue_text}\n")
             else:
                 result += f"  💡 CLUE: No additional clues available.\n"
         result += "\n  📝 TIP: Use your notebook to record this clue!\n\n"
