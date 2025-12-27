@@ -32,6 +32,12 @@ from clue_game.tools import (
     get_notebook_suggestion_history,
     get_strategic_suggestion,
     get_event_log,
+    # Validation tools (moderator oversight)
+    log_validation_warning,
+    track_suggestion_quality,
+    get_player_performance_metrics,
+    get_validation_log,
+    get_game_quality_report,
 )
 
 
@@ -60,11 +66,17 @@ PLAYER_TOOLS = [
     get_valid_options,
 ]
 
-# Moderator tools - only needs to check game status
+# Moderator tools - only needs to check game status and validate agents
 MODERATOR_TOOLS = [
     get_game_status,
     get_suggestion_history,
     get_valid_options,
+    # Validation tools
+    log_validation_warning,
+    track_suggestion_quality,
+    get_player_performance_metrics,
+    get_validation_log,
+    get_game_quality_report,
 ]
 
 

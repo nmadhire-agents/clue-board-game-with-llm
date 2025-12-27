@@ -111,7 +111,33 @@ announce_game_end_task:
     Total turns: {total_turns}
     
     Congratulate the winner and reveal the solution to all players.
+    
+    IMPORTANT: After announcing the winner, generate a quality report using the
+    'Get Game Quality Report' tool to evaluate all agents' performance throughout the game.
   expected_output: >
-    A dramatic announcement of the game's conclusion with the solution reveal
-    and congratulations to the winner.
+    A dramatic announcement of the game's conclusion with the solution reveal,
+    congratulations to the winner, and a comprehensive quality report showing
+    agent performance metrics and decision-making quality.
+  agent: game_moderator
+
+# Moderator task to validate and provide feedback on player moves
+validate_player_action_task:
+  description: >
+    Monitor and validate a player's action for logical consistency and rule compliance.
+    
+    Player: {player_name}
+    Action type: {action_type}
+    Action details: {action_details}
+    
+    Use validation tools to:
+    1. Check if the action follows game rules
+    2. Verify it's consistent with the player's notebook knowledge
+    3. Log any warnings or invalid attempts
+    4. Track suggestion quality (logical vs wasted)
+    
+    If the action is invalid or illogical, provide constructive feedback to guide
+    the player toward better decision-making in future turns.
+  expected_output: >
+    Validation result with either approval or constructive feedback explaining
+    what went wrong and how the player can improve their decision-making.
   agent: game_moderator

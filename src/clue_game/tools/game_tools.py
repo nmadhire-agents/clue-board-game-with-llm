@@ -552,6 +552,8 @@ def make_suggestion(player_name: str, suspect: str, weapon: str) -> str:
     
     # Check the notebook to validate the suggestion is strategic
     notebook_warning = ""
+    is_wasted = False
+    wasted_reason = ""
     try:
         notebook = get_notebook(player_name)
         validation = notebook.validate_suggestion(valid_suspect, valid_weapon, current_room)
@@ -560,6 +562,8 @@ def make_suggestion(player_name: str, suspect: str, weapon: str) -> str:
             # Warn the agent but allow the suggestion (unlike accusation which blocks)
             warning_msg = "\n".join(validation["warnings"])
             notebook_warning = f"\n⚠️ NOTEBOOK WARNING:\n{warning_msg}\n"
+            is_wasted = True
+            wasted_reason = f"Suggested cards already known: {', '.join(validation.get('wasted_cards', []))}"
             
             # Suggest better alternatives
             if validation.get("better_suspects"):
@@ -587,6 +591,13 @@ def make_suggestion(player_name: str, suspect: str, weapon: str) -> str:
         result += notebook_warning
     
     result += "\n"
+    
+    # Track suggestion quality for validation metrics
+    from clue_game.tools.validation_tools import track_suggestion_quality
+    try:
+        track_suggestion_quality(player_name, is_wasted, wasted_reason if is_wasted else "")
+    except Exception:
+        pass  # Don't fail if tracking fails
     
     if suggestion.disproven_by:
         result += f"❌ DISPROVEN by {suggestion.disproven_by} who showed you: {suggestion.card_shown}\n"
@@ -665,15 +676,31 @@ def make_accusation(player_name: str, suspect: str, weapon: str, room: str) -> s
         return "Error: Invalid suspect, weapon, or room name"
     
     # Check the notebook to validate the accusation
+    validation_failed = False
+    validation_warnings = []
     try:
         notebook = get_notebook(player_name)
         validation = notebook.validate_accusation(valid_suspect, valid_weapon, valid_room)
         
         if not validation["valid"]:
             # Block the accusation - notebook shows it's wrong!
+            validation_failed = True
+            validation_warnings = validation["warnings"]
             warning_msg = "\n".join(validation["warnings"])
             result = f"🛑 ACCUSATION BLOCKED!\n\n"
             result += f"Your notebook shows this accusation cannot be correct:\n{warning_msg}\n\n"
+            
+            # Log this as an invalid attempt
+            from clue_game.tools.validation_tools import log_validation_warning
+            try:
+                log_validation_warning(
+                    player_name, 
+                    "illogical_accusation_blocked",
+                    f"Attempted to accuse: {valid_suspect}, {valid_weapon}, {valid_room}. " + warning_msg,
+                    "error"
+                )
+            except Exception:
+                pass
             
             # Show recommendation if available
             rec = validation["recommendation"]

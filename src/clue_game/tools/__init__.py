@@ -27,6 +27,14 @@ from clue_game.tools.notebook_tools import (
     get_event_log,
 )
 
+from clue_game.tools.validation_tools import (
+    log_validation_warning,
+    track_suggestion_quality,
+    get_player_performance_metrics,
+    get_validation_log,
+    get_game_quality_report,
+)
+
 __all__ = [
     # Game tools (official rules)
     "get_my_cards",
@@ -51,4 +59,10 @@ __all__ = [
     "get_notebook_suggestion_history",
     "get_strategic_suggestion",
     "get_event_log",
+    # Validation tools (moderator oversight)
+    "log_validation_warning",
+    "track_suggestion_quality",
+    "get_player_performance_metrics",
+    "get_validation_log",
+    "get_game_quality_report",
 ]

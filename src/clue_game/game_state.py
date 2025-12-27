@@ -382,6 +382,12 @@ class Player:
     moves_remaining: int = 0  # Moves left in current turn
     visited_this_turn: Set[Tuple[int, int]] = field(default_factory=set)  # Squares visited this turn
     
+    # Validation and quality tracking
+    invalid_move_attempts: int = 0  # Count of invalid moves attempted
+    validation_warnings: list[dict] = field(default_factory=list)  # Log of all validation warnings
+    successful_suggestions: int = 0  # Count of logical suggestions made
+    wasted_suggestions: int = 0  # Count of suggestions on known cards
+    
     def __post_init__(self):
         # Initialize knowledge tracking
         self.knowledge = {
@@ -417,6 +423,7 @@ class GameState:
     game_over: bool = False
     winner: Optional[str] = None
     suggestion_history: list[Suggestion] = field(default_factory=list)
+    validation_log: list[dict] = field(default_factory=list)  # System-wide validation events
     
     def setup_game(self, player_names: list[str]) -> None:
         """Initialize the game with players and deal cards."""
