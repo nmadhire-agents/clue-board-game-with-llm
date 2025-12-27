@@ -50,6 +50,8 @@ player_turn_task:
     6. Analyze the response - if someone disproves it, that card is NOT the solution
     7. If you're confident you know the solution, you may make an accusation
     
+    IMPORTANT: Before making any suggestion or accusation, consult your notebook. Only suggest combinations that are not already ruled out. Never accuse unless your notebook shows exactly one possible suspect, weapon, and room. If no logical move is available, prioritize gathering new information over repeating known actions.
+    
     CRITICAL NOTEBOOK STRATEGY:
     - Track ALL cards shown, not just to you, but to any player (these are announced to all agents).
     - When a suggestion is made and a player cannot disprove, mark those cards as NOT held by that player.
