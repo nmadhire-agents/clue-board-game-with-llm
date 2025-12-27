@@ -9,10 +9,8 @@ In this game, 6 AI players investigate a murder at Tudor Mansion:
 - **What** weapon was used (6 weapons)  
 - **Where** the crime took place (9 rooms)
 
-Each player uses deduction and strategy to be the first to solve the mystery!
-```
 
-### Board Layout
+Each player uses deduction and strategy to be the first to solve the mystery!
 
 ## Official Rules Implemented
 
@@ -120,36 +118,16 @@ Below is a sample run of the Clue board game with LLM agents. This demonstrates 
 +-------------+-------------+-------------+
 ```
 
-### Movement
-- **Dice rolling** - Roll two six-sided dice for movement
-- **Magnifying glass** - Rolling a 1 shows a magnifying glass, counts as 1 for movement AND gives you a free clue!
-- **Doors only** - You can only enter/exit rooms through their specific doors
-- **Secret passages** - Corner rooms connect diagonally (no dice needed):
-  - Kitchen <-> Study (top-left to bottom-right)
-  - Conservatory <-> Lounge (top-right to bottom-left)
 
-### Suggestions
-- **Room-based** - You can only suggest while in a room, about THAT room
-- **Must enter room** - You must ENTER a room during your turn to suggest (rolling dice and moving in, or using a secret passage)
-- **Cannot suggest if staying** - If you were already in a room and didn't leave, you cannot suggest
-- **Suspect movement** - Suggested suspect token is moved to your room
-- **Clockwise disproving** - Players go clockwise; first one with a matching card shows ONE card
-- **Auto-notebook update** - When a card is shown (via suggestion disproval or magnifying glass clue), ALL players' notebooks are automatically updated to mark who holds that card
-- **No repeated suggestions** - Cannot suggest again in same room without leaving first (American rules)
-- **Exception** - If moved to a room by another's suggestion, you can suggest immediately
-- **Notebook validation** - Warns if suggesting cards already known (crossed out in notebook)
+## Sample Game Output
 
-### Accusations  
-- **Any room** - Accusations can include any room (not just current location)
-- **Secret check** - You secretly check the solution envelope
-- **Correct** - You win the game!
-- **Wrong** - You're eliminated but must still show cards to disprove others
-- **Once per turn** - You can only make one accusation per turn
-- **Notebook validation** - Accusations are BLOCKED if they include crossed-out cards
+Below is a sample run of the Clue board game with LLM agents. This demonstrates the gameplay, agent reasoning, and deduction process:
 
-### Cards
-- **21 cards total** - 6 suspects + 6 weapons + 9 rooms
-- **Solution envelope** - One card of each type hidden
+<details>
+<summary>Click to expand sample game output</summary>
+
+```
+(See full output in [sample_game_output.txt](sample_game_output.txt))
 - **Dealt cards** - Remaining cards dealt to players
 - **One card shown** - When disproving, show only ONE matching card
 
@@ -161,11 +139,38 @@ Below is a sample run of the Clue board game with LLM agents. This demonstrates 
 - **Python**: 3.11+
 
 ## Installation
-
 ```bash
 # Clone the repository
 git clone https://github.com/nmadhire-vibecoding/clue-board-game-with-llm.git
 cd clue-board-game-with-llm
+
+</details>
+
+---
+
+### Board Layout
+
+The mansion layout with 9 rooms and their door positions:
+
+```
++-------------+-------------+-------------+
+|   KITCHEN   |  BALLROOM   |CONSERVATORY |
+|   (1 door   | (2 doors    |  (1 door    |
+|    south)   |  SW + SE)   |    west)    |
++-------------+-------------+-------------+
+| DINING ROOM |   [CLUE]    |BILLIARD ROOM|
+|  (2 doors   |  Staircase  |  (2 doors   |
+|  N + E)     | (blocked)   |   W + S)    |
++-------------+-------------+-------------+
+|   LOUNGE    |    HALL     |   LIBRARY   |
+|  (1 door    |  (3 doors   |  (2 doors   |
+|    east)    |  NW+N+NE)   |   N + W)    |
++-------------+-------------+-------------+
+|             |             |    STUDY    |
+|             |             |  (1 door    |
+|             |             |   north)    |
++-------------+-------------+-------------+
+```
 
 # Install dependencies with uv
 uv sync
