@@ -23,11 +23,18 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: "3.11"
-    - name: Install dependencies
+    - name: Install uv
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Test with pytest
+        pip install uv
+    - name: Install dependencies with uv
       run: |
-        pytest
+        uv sync
+    - name: Lint with flake8
+      run: |
+        uv pip install flake8
+        flake8 .
+    - name: Test with uv
+      run: |
+        uv pip install pytest
+        uv pip install pytest-cov
+        uv run pytest
