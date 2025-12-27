@@ -15,6 +15,8 @@ from clue_game.game_state import (
     ROOM_CONNECTIONS,
     SECRET_PASSAGES,
     STARTING_POSITIONS,
+    STARTING_POSITION_NAMES,
+    STARTING_POSITION_MOVES,
     get_game_state,
     reset_game_state,
 )
@@ -68,17 +70,31 @@ class TestStartingPositions:
     """Test that starting positions follow official rules."""
     
     def test_all_suspects_have_starting_positions(self):
-        """Every suspect should have a designated starting position."""
+        """Every suspect should have a designated starting position name."""
         for suspect in Suspect:
-            assert suspect in STARTING_POSITIONS
+            assert suspect in STARTING_POSITION_NAMES
+            assert suspect in STARTING_POSITION_MOVES
     
-    def test_mrs_peacock_advantage(self):
-        """Mrs. Peacock should start closest to Conservatory (official rule)."""
-        assert STARTING_POSITIONS[Suspect.MRS_PEACOCK] == Room.CONSERVATORY
+    def test_starting_positions_are_none(self):
+        """Players start in hallway, not in a room (STARTING_POSITIONS returns None)."""
+        for suspect in Suspect:
+            assert STARTING_POSITIONS[suspect] is None
     
-    def test_professor_plum_near_study(self):
+    def test_mrs_peacock_can_reach_conservatory(self):
+        """Mrs. Peacock should be able to reach Conservatory from start (official rule)."""
+        assert Room.CONSERVATORY in STARTING_POSITION_MOVES[Suspect.MRS_PEACOCK]
+    
+    def test_professor_plum_can_reach_study(self):
         """Professor Plum starts near Study for Kitchen passage strategy."""
-        assert STARTING_POSITIONS[Suspect.PROFESSOR_PLUM] == Room.STUDY
+        assert Room.STUDY in STARTING_POSITION_MOVES[Suspect.PROFESSOR_PLUM]
+    
+    def test_each_start_has_reachable_rooms(self):
+        """Each starting position should have at least one reachable room."""
+        for suspect in Suspect:
+            rooms = STARTING_POSITION_MOVES[suspect]
+            assert len(rooms) >= 1
+            for room in rooms:
+                assert isinstance(room, Room)
 
 
 class TestGameSetup:
@@ -120,14 +136,15 @@ class TestGameSetup:
         # That player should be first (index 0)
         assert game.players[0] == scarlet_player
     
-    def test_players_start_at_designated_positions(self):
-        """Players should start at their character's designated room."""
+    def test_players_start_in_hallway(self):
+        """Players should start in hallway (current_room=None, in_hallway=True)."""
         game = GameState()
         game.setup_game(["P1", "P2", "P3"])
         
         for player in game.players:
-            expected_room = STARTING_POSITIONS[player.character]
-            assert player.current_room == expected_room
+            # Players start in hallway, not in any room
+            assert player.current_room is None
+            assert player.in_hallway is True
 
 
 class TestMovement:
@@ -139,6 +156,7 @@ class TestMovement:
         game.setup_game(["Test"])
         player = game.players[0]
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         # Kitchen connects to Ballroom
         assert game.move_player(player, Room.BALLROOM) == True
@@ -150,6 +168,7 @@ class TestMovement:
         game.setup_game(["Test"])
         player = game.players[0]
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         # Kitchen does NOT connect to Library
         assert game.move_player(player, Room.LIBRARY) == False
@@ -161,6 +180,7 @@ class TestMovement:
         game.setup_game(["Test"])
         player = game.players[0]
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         # Kitchen -> Study via secret passage
         assert game.move_player(player, Room.STUDY) == True
@@ -172,6 +192,7 @@ class TestMovement:
         game.setup_game(["Test"])
         player = game.players[0]
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         player.has_moved_since_suggestion = False
         
         game.move_player(player, Room.BALLROOM)
@@ -219,6 +240,7 @@ class TestSuggestions:
         game.setup_game(["Test", "Other"])
         player = game.players[0]
         player.current_room = None
+        player.in_hallway = True
         
         with pytest.raises(ValueError, match="must be in a room"):
             game.make_suggestion(player, "Miss Scarlet", "Knife")
@@ -229,6 +251,7 @@ class TestSuggestions:
         game.setup_game(["Test", "Other"])
         player = game.players[0]
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         suggestion = game.make_suggestion(player, "Miss Scarlet", "Knife")
         assert suggestion.room == "Library"
@@ -245,9 +268,11 @@ class TestSuggestions:
             if p.character == Suspect.MISS_SCARLET:
                 suspect_player = p
                 p.current_room = Room.KITCHEN
+                p.in_hallway = False
                 break
         
         test_player.current_room = Room.LIBRARY
+        test_player.in_hallway = False
         
         # Make suggestion about Miss Scarlet
         game.make_suggestion(test_player, "Miss Scarlet", "Knife")
@@ -263,6 +288,7 @@ class TestSuggestions:
         game.setup_game(["Test", "Other"])
         player = game.get_player_by_name("Test")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         # Ensure player isn't the suspect being suggested (would trigger move_by_suggestion)
         # Use a suspect that isn't the Test player's character
@@ -281,6 +307,7 @@ class TestSuggestions:
         game.setup_game(["Test", "Other"])
         player = game.get_player_by_name("Test")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         player.was_moved_by_suggestion = True
         player.has_moved_since_suggestion = True
         player.last_suggestion_room = Room.LIBRARY
@@ -307,6 +334,7 @@ class TestSuggestions:
         
         # P1 makes suggestion about Miss Scarlet
         p1.current_room = Room.LIBRARY
+        p1.in_hallway = False
         suggestion = game.make_suggestion(p1, "Miss Scarlet", "Knife")
         
         # The player with the card should disprove
@@ -352,6 +380,7 @@ class TestAccusations:
         game.setup_game(["Test", "Other"])
         player = game.get_player_by_name("Test")
         player.current_room = Room.KITCHEN  # Player is in Kitchen
+        player.in_hallway = False
         
         # Get actual solution
         suspect = game.solution["suspect"].name

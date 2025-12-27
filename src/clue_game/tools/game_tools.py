@@ -3,10 +3,12 @@ Custom CrewAI Tools for Clue Board Game
 Tools for agents to interact with the game following official Cluedo/Clue rules.
 """
 
+import sys
 from crewai.tools import tool
 from clue_game.game_state import (
     get_game_state, Room, Suspect, Weapon,
-    ROOM_CONNECTIONS, SECRET_PASSAGES, STARTING_POSITIONS, ROOM_DOORS
+    ROOM_CONNECTIONS, SECRET_PASSAGES, STARTING_POSITIONS, ROOM_DOORS,
+    STARTING_POSITION_NAMES, STARTING_POSITION_MOVES
 )
 from clue_game.notebook import get_notebook
 
@@ -50,7 +52,7 @@ def get_current_location(player_name: str) -> str:
         player_name: Your player name
     
     Returns:
-        Your current room location
+        Your current room location or starting position
     """
     game_state = get_game_state()
     player = game_state.get_player_by_name(player_name)
@@ -58,12 +60,21 @@ def get_current_location(player_name: str) -> str:
     if not player:
         return f"Error: Player {player_name} not found"
     
-    if player.current_room:
+    if player.current_room and not player.in_hallway:
         result = f"You are currently in the {player.current_room.value}"
         if player.was_moved_by_suggestion:
             result += "\n(You were moved here by another player's suggestion - you may suggest immediately without moving)"
         return result
-    return "You are not in any room"
+    else:
+        # Player is at starting position in hallway
+        start_name = STARTING_POSITION_NAMES.get(player.character, "hallway")
+        available_rooms = STARTING_POSITION_MOVES.get(player.character, [])
+        room_names = [r.value for r in available_rooms]
+        result = f"You are at your START position: {start_name}\n"
+        result += f"You are in the hallway (not in any room yet).\n"
+        result += f"You must roll dice and move into a room before making a suggestion.\n"
+        result += f"Rooms you can enter: {', '.join(room_names)}"
+        return result
 
 
 @tool("Roll Dice")
@@ -99,29 +110,41 @@ def roll_dice(player_name: str) -> str:
     move_die2 = 0 if die2 == 1 else die2
     total = move_die1 + move_die2
     
+    # Print dice roll to console for visibility
+    sys.stdout.write(f"\n    🎲 {player_name} rolled: {die1_display} + {die2_display} = {total} movement\n")
+    sys.stdout.flush()
+    
     result = f"🎲 DICE ROLL: {die1_display} + {die2_display} = {total} movement\n\n"
     
     # Handle magnifying glass clues
     if magnifying_count > 0:
         result += f"🔍 MAGNIFYING GLASS {'x2' if magnifying_count == 2 else ''}!\n"
         result += "You get a free clue about the mystery!\n\n"
+        sys.stdout.write(f"    🔍 MAGNIFYING GLASS! {player_name} gets a free clue!\n")
         
         for _ in range(magnifying_count):
             clue = game_state.get_random_clue(player)
             if clue:
                 result += f"  💡 CLUE: {clue}\n"
+                sys.stdout.write(f"    💡 CLUE: {clue}\n")
             else:
                 result += f"  💡 CLUE: No additional clues available.\n"
         result += "\n  📝 TIP: Use your notebook to record this clue!\n\n"
+        sys.stdout.flush()
     
     available = game_state.get_available_moves(player)
     room_names = [r.value for r in available]
     
-    current = player.current_room.value if player.current_room else "starting position"
+    # Show current location - either room name or starting position name
+    if player.current_room and not player.in_hallway:
+        current = player.current_room.value
+    else:
+        current = STARTING_POSITION_NAMES.get(player.character, "starting position")
     
     result += f"From {current}, you can move to:\n"
     for room in room_names:
-        if current in ["Kitchen", "Study", "Conservatory", "Lounge"]:
+        # Check if in a corner room with secret passage
+        if player.current_room and player.current_room in SECRET_PASSAGES:
             secret = SECRET_PASSAGES.get(player.current_room)
             if secret and secret.value == room:
                 result += f"  • {room} (via SECRET PASSAGE - instant!)\n"
@@ -162,23 +185,31 @@ def get_available_moves(player_name: str) -> str:
     
     available = game_state.get_available_moves(player)
     
-    current = player.current_room.value if player.current_room else "nowhere"
-    current_room = player.current_room
+    # Show current location
+    if player.current_room and not player.in_hallway:
+        current = player.current_room.value
+        current_room = player.current_room
+    else:
+        current = STARTING_POSITION_NAMES.get(player.character, "START position")
+        current_room = None
     
     result = f"=== AVAILABLE MOVES from {current} ===\n\n"
     
-    # Show door info for current room
+    # Show door info for current room (only if in a room)
     if current_room and current_room in ROOM_DOORS:
         doors = ROOM_DOORS[current_room]
         result += f"📍 {current} has {len(doors)} door(s):\n"
         for door_side, connects_to in doors:
             result += f"   • {door_side.upper()} door → hallway\n"
         result += "\n"
+    elif not current_room:
+        result += "📍 You are at your START position in the hallway.\n"
+        result += "   You must enter a room to make a suggestion.\n\n"
     
     result += "🚪 You can move to:\n"
     for room in available:
         room_name = room.value
-        # Check if it's a secret passage
+        # Check if it's a secret passage (only available from corner rooms)
         if current_room and current_room in SECRET_PASSAGES and SECRET_PASSAGES[current_room] == room:
             result += f"  • {room_name} (via 🔑 SECRET PASSAGE - no dice needed!)\n"
         else:
@@ -223,9 +254,15 @@ def move_to_room(player_name: str, room_name: str) -> str:
         valid_rooms = [r.value for r in Room]
         return f"Error: Invalid room '{room_name}'. Valid rooms: {', '.join(valid_rooms)}"
     
-    current_room = player.current_room.value if player.current_room else "starting position"
+    # Get current location description
+    if player.current_room and not player.in_hallway:
+        current_room = player.current_room.value
+    else:
+        current_room = STARTING_POSITION_NAMES.get(player.character, "START")
     
     if game_state.move_player(player, target_room):
+        sys.stdout.write(f"    🚶 {player_name} moved: {current_room} → {target_room.value}\n")
+        sys.stdout.flush()
         return f"✓ You moved from {current_room} to the {target_room.value}. You can now make a suggestion about this room."
     else:
         available = [r.value for r in game_state.get_available_moves(player)]
@@ -315,6 +352,9 @@ def make_suggestion(player_name: str, suspect: str, weapon: str) -> str:
     except ValueError as e:
         return f"Error: {str(e)}"
     
+    # Print suggestion to console
+    sys.stdout.write(f"\n    📣 SUGGESTION: {player_name} suggests {valid_suspect} with the {valid_weapon} in the {suggestion.room}\n")
+    
     result = f"📣 SUGGESTION: {valid_suspect} with the {valid_weapon} in the {suggestion.room}\n"
     result += f"   (The {valid_suspect} token has been moved to the {suggestion.room})\n"
     
@@ -328,12 +368,16 @@ def make_suggestion(player_name: str, suspect: str, weapon: str) -> str:
         result += f"❌ DISPROVEN by {suggestion.disproven_by} who showed you: {suggestion.card_shown}\n"
         result += f"   This means {suggestion.card_shown} is NOT part of the solution.\n"
         result += f"   📝 TIP: Record this in your notebook with 'Mark Player Has Card'!"
+        sys.stdout.write(f"    ❌ Disproven by {suggestion.disproven_by} (showed: {suggestion.card_shown})\n")
+        sys.stdout.flush()
         # Update player knowledge
         if suggestion.card_shown not in player.knowledge["seen_cards"]:
             player.knowledge["seen_cards"].append(suggestion.card_shown)
     else:
         result += "✓ NO ONE could disprove this suggestion!\n"
         result += "  This is a VERY strong lead - consider making an accusation!"
+        sys.stdout.write(f"    ✓ NO ONE could disprove!\n")
+        sys.stdout.flush()
     
     return result
 
@@ -424,8 +468,14 @@ def make_accusation(player_name: str, suspect: str, weapon: str, room: str) -> s
         return f"⚠️ {str(e)}"
     
     if is_correct:
+        sys.stdout.write(f"\n    🎉 ACCUSATION CORRECT! {player_name} WINS!\n")
+        sys.stdout.write(f"    🔍 Solution: {valid_suspect} with the {valid_weapon} in the {valid_room}\n")
+        sys.stdout.flush()
         return f"🎉 CORRECT! {player_name} WINS! The solution was {valid_suspect} with the {valid_weapon} in the {valid_room}!"
     else:
+        sys.stdout.write(f"\n    ❌ WRONG ACCUSATION! {player_name} is eliminated!\n")
+        sys.stdout.write(f"    ❌ Accused: {valid_suspect} with the {valid_weapon} in the {valid_room}\n")
+        sys.stdout.flush()
         return f"❌ WRONG! {player_name} is eliminated. The accusation of {valid_suspect} with the {valid_weapon} in the {valid_room} was incorrect."
 
 

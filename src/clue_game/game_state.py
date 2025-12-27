@@ -92,15 +92,37 @@ SECRET_PASSAGES = {
     Room.LOUNGE: Room.CONSERVATORY,  # Bottom-left to top-right
 }
 
-# Starting positions for each suspect (at hallway squares near room entrances)
-# Based on the colored starting squares around the board edge
+# Starting positions for each suspect - these are hallway squares on the edge of the board
+# Players start OUTSIDE rooms and must roll dice to enter a room
+# Format: { Suspect: "position_name" } - used for display
+STARTING_POSITION_NAMES = {
+    Suspect.MISS_SCARLET: "Hallway near Hall (bottom)",     # Red - bottom edge below Hall
+    Suspect.COLONEL_MUSTARD: "Hallway near Lounge (right)",  # Yellow - right edge near Lounge
+    Suspect.MRS_WHITE: "Hallway near Ballroom (top)",        # White - top edge near Ballroom
+    Suspect.MR_GREEN: "Hallway near Conservatory (top)",     # Green - top edge near Conservatory
+    Suspect.MRS_PEACOCK: "Hallway near Conservatory (left)", # Blue - left edge near Conservatory
+    Suspect.PROFESSOR_PLUM: "Hallway near Library (left)",   # Purple - left edge near Library
+}
+
+# Rooms reachable from each starting position (first move options)
+# Based on the actual Clue board layout - which rooms can you enter from your START square
+STARTING_POSITION_MOVES = {
+    Suspect.MISS_SCARLET: [Room.HALL, Room.LOUNGE],           # Can reach Hall or Lounge
+    Suspect.COLONEL_MUSTARD: [Room.LOUNGE, Room.DINING_ROOM], # Can reach Lounge or Dining Room
+    Suspect.MRS_WHITE: [Room.BALLROOM, Room.KITCHEN],         # Can reach Ballroom or Kitchen
+    Suspect.MR_GREEN: [Room.CONSERVATORY, Room.BALLROOM],     # Can reach Conservatory or Ballroom
+    Suspect.MRS_PEACOCK: [Room.CONSERVATORY, Room.LIBRARY],   # Can reach Conservatory or Library
+    Suspect.PROFESSOR_PLUM: [Room.LIBRARY, Room.STUDY],       # Can reach Library or Study
+}
+
+# Legacy compatibility - maps to first room option (for display when in hallway)
 STARTING_POSITIONS = {
-    Suspect.MISS_SCARLET: Room.HALL,        # Red - starts near Hall (goes first!)
-    Suspect.COLONEL_MUSTARD: Room.LOUNGE,   # Yellow - starts near Lounge entrance
-    Suspect.MRS_WHITE: Room.BALLROOM,       # White - starts near Ballroom entrance  
-    Suspect.MR_GREEN: Room.CONSERVATORY,    # Green - starts near Conservatory entrance
-    Suspect.MRS_PEACOCK: Room.CONSERVATORY, # Blue - starts near Conservatory (closest to room!)
-    Suspect.PROFESSOR_PLUM: Room.STUDY,     # Purple - starts near Study entrance
+    Suspect.MISS_SCARLET: None,        # Starts in hallway, not a room
+    Suspect.COLONEL_MUSTARD: None,
+    Suspect.MRS_WHITE: None,
+    Suspect.MR_GREEN: None,
+    Suspect.MRS_PEACOCK: None,
+    Suspect.PROFESSOR_PLUM: None,
 }
 
 
@@ -136,13 +158,14 @@ class Player:
     name: str
     character: Suspect
     cards: list[Card] = field(default_factory=list)
-    current_room: Optional[Room] = None
+    current_room: Optional[Room] = None  # None means in hallway/starting position
     is_active: bool = True  # False if player made wrong accusation
     knowledge: dict = field(default_factory=dict)  # Track what player knows
     last_suggestion_room: Optional[Room] = None  # Track last room where suggestion was made
     has_moved_since_suggestion: bool = True  # Must move/leave room before suggesting again (US rules)
     was_moved_by_suggestion: bool = False  # If pulled into room by another's suggestion
     has_accused_this_turn: bool = False  # Can only accuse once per turn
+    in_hallway: bool = True  # True when player is in hallway (starting position or between rooms)
     
     def __post_init__(self):
         # Initialize knowledge tracking
@@ -198,16 +221,16 @@ class GameState:
         available_characters = list(Suspect)
         random.shuffle(available_characters)
         
-        # Create players with proper starting positions
+        # Create players with proper starting positions (in hallway, not in rooms)
         self.players = []
         for i, name in enumerate(player_names):
             character = available_characters[i]
-            # Starting position based on character (per official rules)
-            starting_room = STARTING_POSITIONS.get(character, Room.HALL)
+            # Players start in hallway (current_room = None, in_hallway = True)
             player = Player(
                 name=name,
                 character=character,
-                current_room=starting_room,
+                current_room=None,  # Not in any room yet - in hallway at START
+                in_hallway=True,
             )
             self.players.append(player)
         
@@ -257,11 +280,12 @@ class GameState:
         Get rooms a player can move to from their current position.
         
         Movement options:
-        1. Regular door connections (through hallways)
-        2. Secret passages (corner rooms only: Kitchen<->Study, Conservatory<->Lounge)
+        1. From hallway/starting position: rooms reachable from that START square
+        2. From a room: door connections (through hallways) and secret passages
         """
-        if player.current_room is None:
-            return list(Room)
+        # If player is in hallway (starting position), return rooms reachable from START
+        if player.current_room is None or player.in_hallway:
+            return list(STARTING_POSITION_MOVES.get(player.character, list(Room)))
         
         # Start with regular door/hallway connections
         available = list(ROOM_CONNECTIONS.get(player.current_room, []))
@@ -277,9 +301,10 @@ class GameState:
     def move_player(self, player: Player, room: Room) -> bool:
         """Move a player to a room if valid."""
         available = self.get_available_moves(player)
-        if room in available or player.current_room is None:
+        if room in available:
             old_room = player.current_room
             player.current_room = room
+            player.in_hallway = False  # Player is now in a room
             # Track that player has moved (for repeated suggestion rule)
             if old_room != room:
                 player.has_moved_since_suggestion = True

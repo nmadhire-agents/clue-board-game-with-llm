@@ -57,6 +57,7 @@ class TestGetCurrentLocation:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         result = get_current_location.func(player_name="TestPlayer")
         
@@ -68,6 +69,7 @@ class TestGetCurrentLocation:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         player.was_moved_by_suggestion = True
         
         result = get_current_location.func(player_name="TestPlayer")
@@ -94,6 +96,7 @@ class TestRollDice:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         result = roll_dice.func(player_name="TestPlayer")
         
@@ -110,6 +113,7 @@ class TestGetAvailableMoves:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         result = get_available_moves.func(player_name="TestPlayer")
         
@@ -122,6 +126,7 @@ class TestGetAvailableMoves:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         result = get_available_moves.func(player_name="TestPlayer")
         
@@ -134,6 +139,7 @@ class TestGetAvailableMoves:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.HALL
+        player.in_hallway = False
         
         result = get_available_moves.func(player_name="TestPlayer")
         
@@ -149,6 +155,7 @@ class TestMoveToRoom:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         result = move_to_room.func(player_name="TestPlayer", room_name="Ballroom")
         
@@ -161,6 +168,7 @@ class TestMoveToRoom:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.KITCHEN
+        player.in_hallway = False
         
         result = move_to_room.func(player_name="TestPlayer", room_name="Library")
         
@@ -186,6 +194,7 @@ class TestMakeSuggestion:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         result = make_suggestion.func(player_name="TestPlayer", suspect="Miss Scarlet", weapon="Knife")
         
@@ -211,6 +220,7 @@ class TestMakeSuggestion:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         result = make_suggestion.func(player_name="TestPlayer", suspect="Invalid Person", weapon="Knife")
         
@@ -222,6 +232,7 @@ class TestMakeSuggestion:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         result = make_suggestion.func(player_name="TestPlayer", suspect="Miss Scarlet", weapon="Invalid Weapon")
         
@@ -233,6 +244,7 @@ class TestMakeSuggestion:
         game.setup_game(["TestPlayer", "Other"])
         player = game.get_player_by_name("TestPlayer")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         result = make_suggestion.func(player_name="TestPlayer", suspect="Miss Scarlet", weapon="Knife")
         
@@ -310,6 +322,7 @@ class TestGetSuggestionHistory:
         game.setup_game(["P1", "P2"])
         player = game.get_player_by_name("P1")
         player.current_room = Room.LIBRARY
+        player.in_hallway = False
         
         # Make a suggestion
         make_suggestion.func(player_name="P1", suspect="Miss Scarlet", weapon="Knife")

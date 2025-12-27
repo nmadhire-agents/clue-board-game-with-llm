@@ -14,7 +14,7 @@ os.environ["CREWAI_TRACING_ENABLED"] = "false"
 
 from dotenv import load_dotenv
 
-from clue_game.game_state import get_game_state, reset_game_state
+from clue_game.game_state import get_game_state, reset_game_state, STARTING_POSITION_NAMES
 from clue_game.notebook import reset_all_notebooks
 from clue_game.crew import (
     ClueGameCrew,
@@ -193,7 +193,11 @@ def run_game(num_players: int = 6, max_turns: int = 50):
     
     for player in game_state.players:
         print(f"{player.name} ({player.character.value}):")
-        print(f"  Location: {player.current_room.value}")
+        if player.current_room and not player.in_hallway:
+            print(f"  Location: {player.current_room.value}")
+        else:
+            start_pos = STARTING_POSITION_NAMES.get(player.character, "Hallway")
+            print(f"  Location: START - {start_pos}")
         print(f"  Cards: {[c.name for c in player.cards]}")
     print()
     
