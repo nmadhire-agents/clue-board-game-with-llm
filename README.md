@@ -10,17 +10,9 @@ In this game, 6 AI players investigate a murder at Tudor Mansion:
 - **Where** the crime took place (9 rooms)
 
 Each player uses deduction and strategy to be the first to solve the mystery!
+```
 
-## Players
-
-| Character | Description | Starting Advantage |
-|-----------|-------------|-------------------|
-| **Miss Scarlet** | The cunning femme fatale | Traditionally moves first |
-| **Colonel Mustard** | Retired military officer | Near Lounge entrance |
-| **Mr. Green** | The analytical businessman | Near Conservatory |
-| **Mrs. Peacock** | Elegant aristocrat | Closest to first room (1 space advantage!) |
-| **Professor Plum** | Absent-minded academic | Near Study (Kitchen passage) |
-| **Mrs. White** | The observant housekeeper | Near Ballroom entrance |
+### Board Layout
 
 ## Official Rules Implemented
 
@@ -95,10 +87,17 @@ WINNING CONDITIONS:
   - Be the last active player (all others eliminated)
 ```
 
-### Board Layout
+---
 
-The mansion layout with 9 rooms and their door positions:
+## Sample Game Output
 
+Below is a sample run of the Clue board game with LLM agents. This demonstrates the gameplay, agent reasoning, and deduction process:
+
+<details>
+<summary>Click to expand sample game output</summary>
+
+```
+(See full output in [sample_game_output.txt](sample_game_output.txt))
 ```
 +-------------+-------------+-------------+
 |   KITCHEN   |  BALLROOM   |CONSERVATORY |
@@ -110,10 +109,12 @@ The mansion layout with 9 rooms and their door positions:
 |  N + E)     | (blocked)   |   W + S)    |
 +-------------+-------------+-------------+
 |   LOUNGE    |    HALL     |   LIBRARY   |
-|  (1 door    |  (3 doors   |  (2 doors   |
 |    east)    |  NW+N+NE)   |   N + W)    |
 +-------------+-------------+-------------+
 |             |             |    STUDY    |
+```
+
+</details>
 |             |             |  (1 door    |
 |             |             |   north)    |
 +-------------+-------------+-------------+

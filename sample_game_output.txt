@@ -1,0 +1,402 @@
+============================================================
+🔍 CLUE: THE MYSTERY GAME WITH AI AGENTS 🔍
+============================================================
+
+
+📣 MODERATOR ANNOUNCEMENT:
+----------------------------------------
+
+============================================================
+🎮 GAME BEGINS!
+============================================================
+
+📋 Initial Setup:
+Solution (hidden): Colonel Mustard, Rope, Billiard Room
+
+White (Miss Scarlet):
+  Location: START - Hallway near Hall (bottom)
+  Cards: ['Mr. Green', 'Ballroom', 'Kitchen']
+Scarlet (Mr. Green):
+  Location: START - Hallway near Conservatory (top)
+  Cards: ['Dining Room', 'Mrs. Peacock', 'Study']
+Mustard (Colonel Mustard):
+  Location: START - Hallway near Lounge (right)
+  Cards: ['Miss Scarlet', 'Conservatory', 'Hall']
+Green (Mrs. White):
+  Location: START - Hallway near Ballroom (top)
+  Cards: ['Candlestick', 'Mrs. White', 'Lead Pipe']
+Peacock (Professor Plum):
+  Location: START - Hallway near Library (left)
+  Cards: ['Wrench', 'Knife', 'Revolver']
+Plum (Mrs. Peacock):
+  Location: START - Hallway near Conservatory (left)
+  Cards: ['Lounge', 'Library', 'Professor Plum']
+
+
+==================================================
+🎲 TURN 1: White (Miss Scarlet)
+==================================================
+
+    🎲 White rolled: 6 + 6 = 12 movement spaces
+    🚶 White moved: (24,11) → Study (2 steps)
+
+    📣 SUGGESTION: White suggests Miss Scarlet with the Candlestick
+ in the Study
+    ❌ Disproven by Scarlet (showed: Study)
+
+📝 White's Turn Summary:
+----------------------------------------
+LOCATION: Study
+ACTION: moved to Study
+SUGGESTION: Miss Scarlet, Candlestick, Study
+RESULT: Card shown by Scarlet
+STATUS: 5 suspects, 6 weapons, 7 rooms remaining
+
+⏳ Waiting 28 seconds before next turn...
+
+==================================================
+🎲 TURN 2: Scarlet (Mr. Green)
+==================================================
+
+    🎲 Scarlet rolled: 🔍 + 3 = 4 movement spaces
+    🔍 MAGNIFYING GLASS! Scarlet gets a free clue!
+    💡 CLUE: Conservatory is NOT the murder room (shown by Mustard)
+
+📝 Scarlet's Turn Summary:
+----------------------------------------
+LOCATION: (0, 15) in hallway
+ACTION: stayed in (0, 15) in hallway (no rooms reachable)
+SUGGESTION: None
+RESULT: None
+STATUS: 5 suspects, 6 weapons, 7 rooms remaining
+
+⏳ Waiting 17 seconds before next turn...
+
+==================================================
+🎲 TURN 3: Mustard (Colonel Mustard)
+==================================================
+
+    🎲 Mustard rolled: 3 + 🔍 = 4 movement spaces
+    🔍 MAGNIFYING GLASS! Mustard gets a free clue!
+    💡 CLUE: Mrs. Peacock is NOT the murder suspect (shown by Scarl
+et)
+    🚶 Mustard moved: (23,7) → Study (3 steps)
+
+    📣 SUGGESTION: Mustard suggests Colonel Mustard with the Candle
+stick in the Study
+    ❌ Disproven by Green (showed: Candlestick)
+
+📝 Mustard's Turn Summary:
+----------------------------------------
+LOCATION: Study
+ACTION: moved to Study
+SUGGESTION: [Colonel Mustard, Candlestick, Study]
+RESULT: Card shown by Green (Candlestick)
+STATUS: 4 suspects, 5 weapons, 7 rooms remaining
+
+⏳ Waiting 24 seconds before next turn...
+
+==================================================
+🎲 TURN 4: Green (Mrs. White)
+==================================================
+
+    🎲 Green rolled: 3 + 🔍 = 4 movement spaces
+    🔍 MAGNIFYING GLASS! Green gets a free clue!
+    💡 CLUE: Ballroom is NOT the murder room (shown by White)
+
+📝 Green's Turn Summary:
+----------------------------------------
+LOCATION: (0, 10) in hallway
+ACTION: moved to (1, 10) in hallway
+SUGGESTION: None
+RESULT: None
+STATUS: 5 suspects, 4 weapons, 9 rooms remaining
+
+⏳ Waiting 16 seconds before next turn...
+
+==================================================
+🎲 TURN 5: Peacock (Professor Plum)
+==================================================
+
+    🎲 Peacock rolled: 3 + 5 = 8 movement spaces
+    🚶 Peacock moved: (16,23) → Billiard Room (4 steps)
+
+    📣 SUGGESTION: Peacock suggests Miss Scarlet with the Candlesti
+ck in the Billiard Room
+    ❌ Disproven by Mustard (showed: Miss Scarlet)
+
+📝 Peacock's Turn Summary:
+----------------------------------------
+LOCATION: Billiard Room
+ACTION: moved to Billiard Room
+SUGGESTION: Miss Scarlet, Candlestick, Billiard Room
+RESULT: Miss Scarlet shown by Colonel Mustard
+STATUS: 5 suspects, 3 weapons, 9 rooms remaining
+
+⏳ Waiting 26 seconds before next turn...
+
+==================================================
+🎲 TURN 6: Plum (Mrs. Peacock)
+==================================================
+
+    🎲 Plum rolled: 2 + 5 = 7 movement spaces
+
+📝 Plum's Turn Summary:
+----------------------------------------
+LOCATION: hallway at (7, 23)
+ACTION: stayed in hallway
+SUGGESTION: None
+RESULT: None
+STATUS: 5 suspects, 6 weapons, 7 rooms remaining
+
+⏳ Waiting 20 seconds before next turn...
+
+==================================================
+🎲 TURN 7: White (Miss Scarlet)
+==================================================
+
+    📣 SUGGESTION: White suggests Colonel Mustard with the Knife in
+ the Billiard Room
+    ❌ Disproven by Peacock (showed: Knife)
+
+📝 White's Turn Summary:
+----------------------------------------
+LOCATION: Billiard Room
+ACTION: stayed in Billiard Room
+SUGGESTION: Colonel Mustard, Knife, Billiard Room
+RESULT: Knife shown by Peacock
+STATUS: 3 suspects, 5 weapons, 5 rooms remaining
+
+⏳ Waiting 16 seconds before next turn...
+
+==================================================
+🎲 TURN 8: Scarlet (Mr. Green)
+==================================================
+
+    🎲 Scarlet rolled: 6 + 2 = 8 movement spaces
+
+📝 Scarlet's Turn Summary:
+----------------------------------------
+LOCATION: hallway at (0, 15)
+ACTION: stayed in hallway
+SUGGESTION: None
+RESULT: None
+STATUS: 4 suspects, 4 weapons, 5 rooms remaining
+
+⏳ Waiting 30 seconds before next turn...
+
+==================================================
+🎲 TURN 9: Mustard (Colonel Mustard)
+==================================================
+
+    📣 SUGGESTION: Mustard suggests Colonel Mustard with the Lead P
+ipe in the Billiard Room
+    ❌ Disproven by Green (showed: Lead Pipe)
+
+    🎲 Mustard rolled: 🔍 + 5 = 6 movement spaces
+    🔍 MAGNIFYING GLASS! Mustard gets a free clue!
+    💡 CLUE: Study is NOT the murder room (shown by Scarlet)
+
+    📣 SUGGESTION: Mustard suggests Colonel Mustard with the Revolv
+er in the Billiard Room
+    ❌ Disproven by Peacock (showed: Revolver)
+
+📝 Mustard's Turn Summary:
+----------------------------------------
+
+LOCATION: Billiard Room
+ACTION: stayed in Billiard Room
+SUGGESTION: Colonel Mustard, Revolver, Billiard Room
+RESULT: Revolver shown by Peacock
+STATUS: 4 suspects, 2 weapons, 6 rooms remaining
+
+⏳ Waiting 29 seconds before next turn...
+
+==================================================
+🎲 TURN 10: Green (Mrs. White)
+==================================================
+
+    🎲 Green rolled: 3 + 🔍 = 4 movement spaces
+    🔍 MAGNIFYING GLASS! Green gets a free clue!
+    💡 CLUE: Professor Plum is NOT the murder suspect (shown by Plu
+m)
+
+📝 Green's Turn Summary:
+----------------------------------------
+LOCATION: (0, 10) in hallway
+ACTION: stayed in (0, 10)
+SUGGESTION: None
+RESULT: None
+STATUS: 3 suspects, 2 weapons, 7 rooms remaining
+
+⏳ Waiting 24 seconds before next turn...
+
+==================================================
+🎲 TURN 11: Peacock (Professor Plum)
+==================================================
+
+    🎲 Peacock rolled: 6 + 2 = 8 movement spaces
+
+⚠️ Attempt 1/4 failed
+   📋 Error: Type: TypeError | Message: Printer.print() got multipl
+e values for argument 'content'
+🔄 Retrying in 5 seconds...
+
+📝 Peacock's Turn Summary:
+----------------------------------------
+LOCATION: Billiard Room
+ACTION: stayed in Billiard Room
+SUGGESTION: None
+RESULT: None
+STATUS: 4 suspects, 2 weapons, 8 rooms remaining
+
+⏳ Waiting 26 seconds before next turn...
+
+==================================================
+🎲 TURN 12: Plum (Mrs. Peacock)
+==================================================
+
+    🎲 Plum rolled: 3 + 3 = 6 movement spaces
+
+📝 Plum's Turn Summary:
+----------------------------------------
+LOCATION: hallway at (7, 23)
+ACTION: stayed in hallway at (7, 23) (unable to reach a room)
+SUGGESTION: None
+RESULT: None
+STATUS: 5 suspects, 3 weapons, 6 rooms remaining
+
+⏳ Waiting 21 seconds before next turn...
+
+==================================================
+🎲 TURN 13: White (Miss Scarlet)
+==================================================
+
+    📣 SUGGESTION: White suggests Colonel Mustard with the Rope in 
+the Billiard Room
+    ✓ NO ONE could disprove!
+
+📝 White's Turn Summary:
+----------------------------------------
+
+
+⏳ Waiting 17 seconds before next turn...
+
+==================================================
+🎲 TURN 14: Scarlet (Mr. Green)
+==================================================
+
+    🎲 Scarlet rolled: 2 + 4 = 6 movement spaces
+
+📝 Scarlet's Turn Summary:
+----------------------------------------
+LOCATION: (0, 15) in hallway
+ACTION: Stayed in hallway
+SUGGESTION: None
+RESULT: None
+STATUS: 3 suspects, 2 weapons, 5 rooms remaining
+
+⏳ Waiting 18 seconds before next turn...
+
+==================================================
+🎲 TURN 15: Mustard (Colonel Mustard)
+==================================================
+
+    📣 SUGGESTION: Mustard suggests Colonel Mustard with the Rope i
+n the Billiard Room
+    ✓ NO ONE could disprove!
+
+    🎲 Mustard rolled: 3 + 🔍 = 4 movement spaces
+    🔍 MAGNIFYING GLASS! Mustard gets a free clue!
+    💡 CLUE: Mrs. White is NOT the murder suspect (shown by Green)
+
+📝 Mustard's Turn Summary:
+----------------------------------------
+LOCATION: Billiard Room
+ACTION: stayed in Billiard Room
+SUGGESTION: Colonel Mustard, Rope, Billiard Room
+RESULT: No one could disprove
+STATUS: 2 suspects (Colonel Mustard, Mr. Green), 2 weapons (Rope, W
+rench), 5 rooms (Kitchen, Billiard Room, Library, Lounge, Dining Ro
+om) remaining
+
+⏳ Waiting 23 seconds before next turn...
+
+==================================================
+🎲 TURN 16: Green (Mrs. White)
+==================================================
+
+    🎲 Green rolled: 4 + 🔍 = 5 movement spaces
+    🔍 MAGNIFYING GLASS! Green gets a free clue!
+    💡 CLUE: Wrench is NOT the murder weapon (shown by Peacock)
+
+📝 Green's Turn Summary:
+----------------------------------------
+LOCATION: hallway at (0, 10)
+ACTION: stayed in hallway at (0, 10)
+SUGGESTION: None
+RESULT: Wrench is not the murder weapon (shown by Peacock)
+STATUS: 3 suspects, 2 weapons, 7 rooms remaining
+
+⏳ Waiting 22 seconds before next turn...
+
+==================================================
+🎲 TURN 17: Peacock (Professor Plum)
+==================================================
+
+    🎲 Peacock rolled: 3 + 2 = 5 movement spaces
+
+📝 Peacock's Turn Summary:
+----------------------------------------
+LOCATION: Billiard Room
+ACTION: stayed in Billiard Room
+SUGGESTION: None
+RESULT: None
+STATUS: 3 suspects, 2 weapons, 8 rooms remaining
+
+⏳ Waiting 18 seconds before next turn...
+
+==================================================
+🎲 TURN 18: Plum (Mrs. Peacock)
+==================================================
+
+    🎲 Plum rolled: 4 + 4 = 8 movement spaces
+
+📝 Plum's Turn Summary:
+----------------------------------------
+LOCATION: (7, 23)
+ACTION: stayed in (7, 23)
+SUGGESTION: None
+RESULT: None
+STATUS: 4 suspects, 2 weapons, 6 rooms remaining
+
+⏳ Waiting 24 seconds before next turn...
+
+==================================================
+🎲 TURN 19: White (Miss Scarlet)
+==================================================
+
+    📣 SUGGESTION: White suggests Colonel Mustard with the Rope in 
+the Billiard Room
+    ✓ NO ONE could disprove!
+
+    🎉 ACCUSATION CORRECT! White WINS!
+    🔍 Solution: Colonel Mustard with the Rope in the Billiard Room
+
+📝 White's Turn Summary:
+----------------------------------------
+LOCATION: Billiard Room
+ACTION: stayed in Billiard Room
+SUGGESTION: Colonel Mustard, Rope, Billiard Room
+RESULT: No one could disprove
+STATUS: 0 suspects, 0 weapons, 0 rooms remaining
+
+============================================================
+🏁 GAME OVER!
+============================================================
+
+📊 FINAL RESULTS:
+----------------------------------------
+Winner: White
+Total Turns: 19
+Solution: Colonel Mustard with the Rope in the Billiard Room
