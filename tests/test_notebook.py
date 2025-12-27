@@ -10,6 +10,7 @@ from clue_game.notebook import (
     get_notebook,
     reset_notebook,
     reset_all_notebooks,
+    update_all_notebooks_card_shown,
 )
 from clue_game.game_state import Room, Suspect, Weapon
 
@@ -305,3 +306,114 @@ class TestSuggestionValidation:
         assert "Miss Scarlet" not in result["better_suspects"]
         assert len(result["better_weapons"]) > 0
         assert "Knife" not in result["better_weapons"]
+
+
+class TestUpdateAllNotebooksCardShown:
+    """Test the update_all_notebooks_card_shown function."""
+    
+    def test_updates_all_player_notebooks(self):
+        """Should update all players' notebooks when a card is shown."""
+        reset_all_notebooks()
+        
+        # Create notebooks for multiple players
+        players = ["Miss Scarlet", "Colonel Mustard", "Mrs. White"]
+        nb1 = get_notebook("Miss Scarlet", players)
+        nb2 = get_notebook("Colonel Mustard", players)
+        nb3 = get_notebook("Mrs. White", players)
+        
+        # Call update_all_notebooks_card_shown
+        update_all_notebooks_card_shown("Knife", "Colonel Mustard")
+        
+        # All notebooks should now show Colonel Mustard has the Knife
+        assert nb1.entries["Knife"].player_status["Colonel Mustard"] == CardStatus.HAS
+        assert nb2.entries["Knife"].player_status["Colonel Mustard"] == CardStatus.HAS
+        assert nb3.entries["Knife"].player_status["Colonel Mustard"] == CardStatus.HAS
+        
+        # Other players should be marked as NOT having the Knife
+        assert nb1.entries["Knife"].player_status["Miss Scarlet"] == CardStatus.NOT_HAS
+        assert nb1.entries["Knife"].player_status["Mrs. White"] == CardStatus.NOT_HAS
+    
+    def test_marks_card_not_in_envelope(self):
+        """Card shown should be marked as not in envelope for all players."""
+        reset_all_notebooks()
+        
+        players = ["Miss Scarlet", "Colonel Mustard"]
+        nb1 = get_notebook("Miss Scarlet", players)
+        nb2 = get_notebook("Colonel Mustard", players)
+        
+        update_all_notebooks_card_shown("Library", "Miss Scarlet")
+        
+        # Both notebooks should show Library is NOT in the envelope
+        assert nb1.entries["Library"].envelope_status == CardStatus.NOT_HAS
+        assert nb2.entries["Library"].envelope_status == CardStatus.NOT_HAS
+    
+    def test_handles_empty_notebooks(self):
+        """Should handle case where no notebooks exist yet."""
+        reset_all_notebooks()
+        
+        # This should not raise an error even with no notebooks
+        update_all_notebooks_card_shown("Knife", "Colonel Mustard")
+    
+    def test_updates_after_suggestion_disproval_scenario(self):
+        """Simulate a suggestion disproval and verify all notebooks updated."""
+        reset_all_notebooks()
+        
+        players = ["Miss Scarlet", "Colonel Mustard", "Mrs. White", "Mr. Green"]
+        
+        # Create all player notebooks (as would happen in a real game)
+        for player in players:
+            get_notebook(player, players)
+        
+        # Simulate: Miss Scarlet suggests, Colonel Mustard shows Knife
+        update_all_notebooks_card_shown("Knife", "Colonel Mustard")
+        
+        # All four players should have updated notebooks
+        for player in players:
+            nb = get_notebook(player, players)
+            assert nb.entries["Knife"].player_status["Colonel Mustard"] == CardStatus.HAS
+            assert nb.entries["Knife"].envelope_status == CardStatus.NOT_HAS
+    
+    def test_updates_after_magnifying_glass_clue_scenario(self):
+        """Simulate a magnifying glass clue and verify all notebooks updated."""
+        reset_all_notebooks()
+        
+        players = ["Miss Scarlet", "Colonel Mustard", "Mrs. White"]
+        
+        for player in players:
+            get_notebook(player, players)
+        
+        # Simulate: Player rolls magnifying glass and gets clue about Mrs. White having Revolver
+        update_all_notebooks_card_shown("Revolver", "Mrs. White")
+        
+        # All three players should know Mrs. White has the Revolver
+        for player in players:
+            nb = get_notebook(player, players)
+            assert nb.entries["Revolver"].player_status["Mrs. White"] == CardStatus.HAS
+            # And other players don't have it
+            assert nb.entries["Revolver"].player_status["Miss Scarlet"] == CardStatus.NOT_HAS
+            assert nb.entries["Revolver"].player_status["Colonel Mustard"] == CardStatus.NOT_HAS
+    
+    def test_multiple_cards_revealed_progressively(self):
+        """Test that multiple card reveals accumulate correctly."""
+        reset_all_notebooks()
+        
+        players = ["Miss Scarlet", "Colonel Mustard", "Mrs. White"]
+        
+        for player in players:
+            get_notebook(player, players)
+        
+        # First card revealed
+        update_all_notebooks_card_shown("Knife", "Colonel Mustard")
+        
+        # Second card revealed
+        update_all_notebooks_card_shown("Library", "Mrs. White")
+        
+        # Third card revealed
+        update_all_notebooks_card_shown("Miss Scarlet", "Miss Scarlet")
+        
+        # All notebooks should have all three pieces of information
+        for player in players:
+            nb = get_notebook(player, players)
+            assert nb.entries["Knife"].player_status["Colonel Mustard"] == CardStatus.HAS
+            assert nb.entries["Library"].player_status["Mrs. White"] == CardStatus.HAS
+            assert nb.entries["Miss Scarlet"].player_status["Miss Scarlet"] == CardStatus.HAS
