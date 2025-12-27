@@ -1,4 +1,7 @@
+
 # Clue Board Game with LLM Agents
+
+[![Build Status](https://github.com/nmadhire-vibecoding/clue-board-game-with-llm/actions/workflows/python-app.yml/badge.svg)](https://github.com/nmadhire-vibecoding/clue-board-game-with-llm/actions/workflows/python-app.yml)
 
 A multi-agent implementation of the classic Clue (Cluedo) board game using CrewAI and Google Gemini 2.5 Flash LLM. Six AI agents compete to solve the murder mystery following the **official game rules** from [Wikipedia](https://en.wikipedia.org/wiki/Cluedo#Rules).
 
