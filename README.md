@@ -221,8 +221,9 @@ src/clue_game/
 │   └── tasks.yaml       # Task definitions
 └── tools/
     ├── __init__.py
-    ├── game_tools.py    # Game action tools (move, suggest, accuse)
-    └── notebook_tools.py # Detective notebook tools
+    ├── game_tools.py       # Game action tools (move, suggest, accuse)
+    ├── notebook_tools.py   # Detective notebook tools
+    └── validation_tools.py # Moderator validation & performance tracking
 ```
 
 ## Detective Notebook
@@ -238,6 +239,39 @@ LLMs are notoriously bad at maintaining long-term logic across many turns. To so
 - **Recommends accusations** - Tells agent when all 3 categories narrowed to 1 option
 
 This prevents the AI from "forgetting" crucial information during the game!
+
+## Validation & Agent Oversight
+
+To ensure agents make logical, notebook-driven decisions, a comprehensive **validation system** monitors agent performance:
+
+### Moderator as Validator
+The game moderator acts as an impartial judge and validator, tracking:
+- Invalid move attempts and rule violations
+- Suggestion quality (logical vs wasted on known cards)
+- Agent decision-making patterns
+- Real-time feedback on illogical moves
+
+### Performance Metrics
+Each agent is graded on:
+- **Logical suggestions**: Using unknown cards to gather information
+- **Wasted suggestions**: Suggesting cards already known (no new info)
+- **Invalid attempts**: Moves blocked for contradicting notebook
+- **Quality score**: Percentage of logical decisions
+
+### Grading System
+- **A (Excellent)**: ≥80% logical suggestions, 0 invalid attempts
+- **B (Good)**: ≥60% logical suggestions, ≤2 invalid attempts
+- **C (Fair)**: ≥40% logical suggestions
+- **D (Needs Improvement)**: <40% logical suggestions
+
+### End-Game Analysis
+At game conclusion, the moderator generates a comprehensive quality report showing:
+- Individual agent performance metrics
+- Overall decision-making quality
+- Validation warnings and patterns
+- Suggestions for prompt improvements
+
+This system ensures agents follow the perceive → reason → plan → act loop effectively!
 
 ## Environment Variables
 
