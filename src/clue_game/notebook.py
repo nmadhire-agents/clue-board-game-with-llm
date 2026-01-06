@@ -10,6 +10,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 
+# Import TOON utilities for token-efficient output
+from clue_game.toon_utils import to_toon, TOON_ENABLED
+
 
 class CardStatus(Enum):
     """Status of a card in relation to a player/envelope."""
@@ -291,7 +294,7 @@ class DetectiveNotebook:
         Use this when deciding what to suggest.
         
         Returns:
-            List of unknown cards grouped by type
+            List of unknown cards grouped by type (TOON or text format)
         """
         unknown = {"suspect": [], "weapon": [], "room": []}
         
@@ -299,13 +302,27 @@ class DetectiveNotebook:
             if not entry.is_solved():
                 unknown[entry.card_type].append(card_name)
         
-        result = "=== UNKNOWN CARDS ===\n\n"
-        result += f"Suspects ({len(unknown['suspect'])} unknown):\n"
-        result += "  " + ", ".join(unknown['suspect']) if unknown['suspect'] else "  All suspects accounted for!"
-        result += f"\n\nWeapons ({len(unknown['weapon'])} unknown):\n"
-        result += "  " + ", ".join(unknown['weapon']) if unknown['weapon'] else "  All weapons accounted for!"
-        result += f"\n\nRooms ({len(unknown['room'])} unknown):\n"
-        result += "  " + ", ".join(unknown['room']) if unknown['room'] else "  All rooms accounted for!"
+        if TOON_ENABLED:
+            return to_toon({
+                "unknown": {
+                    "s": unknown["suspect"],
+                    "w": unknown["weapon"],
+                    "r": unknown["room"]
+                },
+                "counts": {
+                    "s": len(unknown["suspect"]),
+                    "w": len(unknown["weapon"]),
+                    "r": len(unknown["room"])
+                }
+            })
+        
+        result = "UNKNOWN CARDS\n"
+        result += f"Suspects({len(unknown['suspect'])}): "
+        result += ", ".join(unknown['suspect']) if unknown['suspect'] else "none"
+        result += f"\nWeapons({len(unknown['weapon'])}): "
+        result += ", ".join(unknown['weapon']) if unknown['weapon'] else "none"
+        result += f"\nRooms({len(unknown['room'])}): "
+        result += ", ".join(unknown['room']) if unknown['room'] else "none"
         
         return result
     
@@ -314,7 +331,7 @@ class DetectiveNotebook:
         Get the cards that could possibly be in the envelope (the solution).
         
         Returns:
-            Possible solution cards and confidence level
+            Possible solution cards and confidence level (TOON or text format)
         """
         possible = {"suspect": [], "weapon": [], "room": []}
         confirmed = {"suspect": None, "weapon": None, "room": None}
@@ -328,32 +345,6 @@ class DetectiveNotebook:
                 if not any(s == CardStatus.HAS for s in entry.player_status.values()):
                     possible[entry.card_type].append(card_name)
         
-        result = "=== POSSIBLE SOLUTION ===\n\n"
-        
-        # Suspect
-        if confirmed["suspect"]:
-            result += f"SUSPECT: *** {confirmed['suspect']} *** (CONFIRMED!)\n"
-        elif len(possible["suspect"]) == 1:
-            result += f"SUSPECT: {possible['suspect'][0]} (only possibility!)\n"
-        else:
-            result += f"SUSPECT: {len(possible['suspect'])} possibilities - {', '.join(possible['suspect'])}\n"
-        
-        # Weapon
-        if confirmed["weapon"]:
-            result += f"WEAPON: *** {confirmed['weapon']} *** (CONFIRMED!)\n"
-        elif len(possible["weapon"]) == 1:
-            result += f"WEAPON: {possible['weapon'][0]} (only possibility!)\n"
-        else:
-            result += f"WEAPON: {len(possible['weapon'])} possibilities - {', '.join(possible['weapon'])}\n"
-        
-        # Room
-        if confirmed["room"]:
-            result += f"ROOM: *** {confirmed['room']} *** (CONFIRMED!)\n"
-        elif len(possible["room"]) == 1:
-            result += f"ROOM: {possible['room'][0]} (only possibility!)\n"
-        else:
-            result += f"ROOM: {len(possible['room'])} possibilities - {', '.join(possible['room'])}\n"
-        
         # Check if we can make an accusation
         can_accuse = (
             (confirmed["suspect"] or len(possible["suspect"]) == 1) and
@@ -361,12 +352,55 @@ class DetectiveNotebook:
             (confirmed["room"] or len(possible["room"]) == 1)
         )
         
+        if TOON_ENABLED:
+            final_suspect = confirmed["suspect"] or (possible["suspect"][0] if len(possible["suspect"]) == 1 else None)
+            final_weapon = confirmed["weapon"] or (possible["weapon"][0] if len(possible["weapon"]) == 1 else None)
+            final_room = confirmed["room"] or (possible["room"][0] if len(possible["room"]) == 1 else None)
+            
+            data = {
+                "can_accuse": can_accuse,
+                "confirmed": {k: v for k, v in {"s": confirmed["suspect"], "w": confirmed["weapon"], "r": confirmed["room"]}.items() if v},
+                "possible": {
+                    "s": possible["suspect"] if len(possible["suspect"]) > 1 else [],
+                    "w": possible["weapon"] if len(possible["weapon"]) > 1 else [],
+                    "r": possible["room"] if len(possible["room"]) > 1 else []
+                }
+            }
+            if can_accuse:
+                data["accuse"] = {"s": final_suspect, "w": final_weapon, "r": final_room}
+            return to_toon(data)
+        
+        result = "POSSIBLE SOLUTION\n"
+        
+        # Suspect
+        if confirmed["suspect"]:
+            result += f"S: {confirmed['suspect']} (CONFIRMED)\n"
+        elif len(possible["suspect"]) == 1:
+            result += f"S: {possible['suspect'][0]} (only 1)\n"
+        else:
+            result += f"S: {len(possible['suspect'])} options - {', '.join(possible['suspect'])}\n"
+        
+        # Weapon
+        if confirmed["weapon"]:
+            result += f"W: {confirmed['weapon']} (CONFIRMED)\n"
+        elif len(possible["weapon"]) == 1:
+            result += f"W: {possible['weapon'][0]} (only 1)\n"
+        else:
+            result += f"W: {len(possible['weapon'])} options - {', '.join(possible['weapon'])}\n"
+        
+        # Room
+        if confirmed["room"]:
+            result += f"R: {confirmed['room']} (CONFIRMED)\n"
+        elif len(possible["room"]) == 1:
+            result += f"R: {possible['room'][0]} (only 1)\n"
+        else:
+            result += f"R: {len(possible['room'])} options - {', '.join(possible['room'])}\n"
+        
         if can_accuse:
-            result += "\n🎯 YOU CAN MAKE AN ACCUSATION! All three are narrowed to one option!"
             final_suspect = confirmed["suspect"] or possible["suspect"][0]
             final_weapon = confirmed["weapon"] or possible["weapon"][0]
             final_room = confirmed["room"] or possible["room"][0]
-            result += f"\n   -> Accuse: {final_suspect} with {final_weapon} in {final_room}"
+            result += f"CAN ACCUSE: {final_suspect}, {final_weapon}, {final_room}"
         
         return result
     
@@ -527,35 +561,46 @@ class DetectiveNotebook:
 
     def get_notebook_grid(self) -> str:
         """
-        Get the full notebook grid showing all deductions.
+        Get the notebook grid showing all deductions.
         
         Returns:
-            Formatted grid of all card statuses
+            Formatted grid of card statuses (TOON or text format)
         """
-        result = "=== DETECTIVE NOTEBOOK GRID ===\n"
-        result += f"(Owner: {self.owner_name})\n\n"
+        if TOON_ENABLED:
+            # Build compact TOON representation
+            grid_data = []
+            for card_type in ["suspect", "weapon", "room"]:
+                for card_name, entry in self.entries.items():
+                    if entry.card_type == card_type:
+                        row = {
+                            "c": card_name[:12],  # card (abbreviated)
+                            "t": card_type[0]      # type: s/w/r
+                        }
+                        for player in self.all_players:
+                            row[player[:3]] = entry.player_status[player].value
+                        row["env"] = entry.envelope_status.value
+                        grid_data.append(row)
+            return to_toon({"grid": grid_data})
         
-        # Header
-        header = "Card".ljust(20)
+        # Compact text format
+        result = f"NOTEBOOK ({self.owner_name})\n"
+        
+        # Header - short names
+        header = "Card".ljust(14)
         for player in self.all_players:
-            header += player[:8].center(10)
-        header += "ENVELOPE".center(10)
+            header += player[:3].center(5)
+        header += "ENV".center(5)
         result += header + "\n"
-        result += "=" * len(header) + "\n"
         
-        # Group by type
         for card_type in ["suspect", "weapon", "room"]:
-            result += f"\n--- {card_type.upper()}S ---\n"
+            result += f"[{card_type[0].upper()}]\n"
             for card_name, entry in self.entries.items():
                 if entry.card_type == card_type:
-                    row = card_name.ljust(20)
+                    row = card_name[:13].ljust(14)
                     for player in self.all_players:
-                        status = entry.player_status[player]
-                        row += status.value.center(10)
-                    row += entry.envelope_status.value.center(10)
+                        row += entry.player_status[player].value.center(5)
+                    row += entry.envelope_status.value.center(5)
                     result += row + "\n"
-        
-        result += "\nLegend: ✓=Has  ✗=Doesn't have  ?=Unknown\n"
         
         return result
     
@@ -564,41 +609,58 @@ class DetectiveNotebook:
         Get the history of all suggestions.
         
         Returns:
-            Formatted suggestion history
+            Formatted suggestion history (TOON or text format)
         """
         if not self.suggestion_log:
-            return "No suggestions have been recorded yet."
+            return "No suggestions recorded."
         
-        result = "=== SUGGESTION HISTORY ===\n\n"
-        for i, sugg in enumerate(self.suggestion_log, 1):
-            result += f"Turn {sugg['turn']}: {sugg['suggester']} suggested:\n"
-            result += f"  {sugg['suspect']} with {sugg['weapon']} in {sugg['room']}\n"
-            if sugg['disprover']:
-                result += f"  -> Disproved by {sugg['disprover']}"
+        if TOON_ENABLED:
+            # Compact TOON format
+            history = []
+            for sugg in self.suggestion_log:
+                entry = {
+                    "t": sugg['turn'],
+                    "by": sugg['suggester'][:3],
+                    "s": sugg['suspect'],
+                    "w": sugg['weapon'],
+                    "r": sugg['room']
+                }
+                if sugg['disprover']:
+                    entry["disproved"] = sugg['disprover'][:3]
                 if sugg['card_shown']:
-                    result += f" (showed: {sugg['card_shown']})"
-                result += "\n"
+                    entry["shown"] = sugg['card_shown']
+                if sugg['players_passed']:
+                    entry["passed"] = [p[:3] for p in sugg['players_passed']]
+                history.append(entry)
+            return to_toon({"history": history})
+        
+        result = "SUGGESTION HISTORY\n"
+        for sugg in self.suggestion_log:
+            line = f"T{sugg['turn']}:{sugg['suggester'][:3]}>{sugg['suspect'][:8]},{sugg['weapon'][:8]},{sugg['room'][:8]}"
+            if sugg['disprover']:
+                line += f"|disp:{sugg['disprover'][:3]}"
             else:
-                result += "  -> NOT DISPROVED!\n"
-            if sugg['players_passed']:
-                result += f"  -> Passed: {', '.join(sugg['players_passed'])}\n"
-            result += "\n"
+                line += "|NOT_DISPROVED"
+            result += line + "\n"
         
         return result
     
     def get_turn_log(self) -> str:
         """
-        Get the full log of all events.
+        Get the log of all events.
         
         Returns:
-            Complete event log
+            Event log (TOON or text format)
         """
         if not self.turn_log:
-            return "No events logged yet."
+            return "No events."
         
-        result = "=== EVENT LOG ===\n\n"
-        for i, event in enumerate(self.turn_log, 1):
-            result += f"{i}. {event}\n"
+        if TOON_ENABLED:
+            return to_toon({"events": self.turn_log[-20:]})  # Last 20 events
+        
+        result = "EVENTS\n"
+        for event in self.turn_log[-20:]:  # Last 20
+            result += f"- {event}\n"
         
         return result
     
@@ -615,7 +677,7 @@ class DetectiveNotebook:
             current_room: The room you're currently in
         
         Returns:
-            Recommended suggestion
+            Recommended suggestion (TOON or text format)
         """
         unknown = {"suspect": [], "weapon": []}
         
@@ -623,22 +685,35 @@ class DetectiveNotebook:
             if entry.card_type in ["suspect", "weapon"] and not entry.is_solved():
                 unknown[entry.card_type].append(card_name)
         
-        result = f"=== STRATEGIC SUGGESTION for {current_room} ===\n\n"
+        recommend_s = unknown["suspect"][0] if unknown["suspect"] else None
+        recommend_w = unknown["weapon"][0] if unknown["weapon"] else None
+        
+        if TOON_ENABLED:
+            data = {
+                "room": current_room,
+                "unknown_s": unknown["suspect"],
+                "unknown_w": unknown["weapon"]
+            }
+            if recommend_s and recommend_w:
+                data["suggest"] = {"s": recommend_s, "w": recommend_w, "r": current_room}
+            return to_toon(data)
+        
+        result = f"STRATEGIC SUGGESTION ({current_room})\n"
         
         if not unknown["suspect"]:
-            result += "⚠️ All suspects are accounted for!\n"
+            result += "All suspects known\n"
         else:
-            result += f"Unknown suspects to test: {', '.join(unknown['suspect'])}\n"
-            result += f"Recommend: {unknown['suspect'][0]}\n"
+            result += f"Unknown S: {', '.join(unknown['suspect'])}\n"
+            result += f"Recommend S: {recommend_s}\n"
         
         if not unknown["weapon"]:
-            result += "⚠️ All weapons are accounted for!\n"
+            result += "All weapons known\n"
         else:
-            result += f"Unknown weapons to test: {', '.join(unknown['weapon'])}\n"
-            result += f"Recommend: {unknown['weapon'][0]}\n"
+            result += f"Unknown W: {', '.join(unknown['weapon'])}\n"
+            result += f"Recommend W: {recommend_w}\n"
         
-        if unknown["suspect"] and unknown["weapon"]:
-            result += f"\n🎯 Suggested: '{unknown['suspect'][0]}' with '{unknown['weapon'][0]}' in '{current_room}'"
+        if recommend_s and recommend_w:
+            result += f"SUGGEST: {recommend_s}, {recommend_w}, {current_room}"
         
         return result
 

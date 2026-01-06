@@ -7,6 +7,8 @@ Movement Rules:
 - Cannot pass through or land on occupied hallway squares
 - Movement stops upon entering a room
 - Cannot visit same square twice in one turn
+
+Outputs use TOON format when enabled for token efficiency.
 """
 
 import sys
@@ -18,6 +20,7 @@ from clue_game.game_state import (
     DOOR_POSITIONS, get_cell_type, CellType, BOARD_WIDTH, BOARD_HEIGHT
 )
 from clue_game.notebook import get_notebook, update_all_notebooks_card_shown
+from clue_game.toon_utils import to_toon, TOON_ENABLED
 
 
 @tool("Get My Cards")
@@ -42,10 +45,20 @@ def get_my_cards(player_name: str) -> str:
     for card in player.cards:
         cards_by_type[card.card_type].append(card.name)
     
-    result = f"Your cards ({len(player.cards)} total):\n"
-    result += f"  Suspects: {', '.join(cards_by_type['suspect']) or 'None'}\n"
-    result += f"  Weapons: {', '.join(cards_by_type['weapon']) or 'None'}\n"
-    result += f"  Rooms: {', '.join(cards_by_type['room']) or 'None'}"
+    if TOON_ENABLED:
+        return to_toon({
+            "cards": {
+                "s": cards_by_type["suspect"],
+                "w": cards_by_type["weapon"],
+                "r": cards_by_type["room"]
+            },
+            "total": len(player.cards)
+        })
+    
+    result = f"Cards({len(player.cards)}): "
+    result += f"S:{','.join(cards_by_type['suspect']) or '-'} "
+    result += f"W:{','.join(cards_by_type['weapon']) or '-'} "
+    result += f"R:{','.join(cards_by_type['room']) or '-'}"
     
     return result
 
@@ -68,36 +81,45 @@ def get_current_location(player_name: str) -> str:
         return f"Error: Player {player_name} not found"
     
     if player.current_room and not player.in_hallway:
-        result = f"📍 You are currently in the {player.current_room.value}\n"
-        result += f"   Moves remaining: {player.moves_remaining}\n"
-        if player.was_moved_by_suggestion:
-            result += "\n(You were moved here by another player's suggestion - you may suggest immediately without moving)"
+        if TOON_ENABLED:
+            data = {
+                "location": player.current_room.value,
+                "type": "room",
+                "moves_left": player.moves_remaining
+            }
+            if player.was_moved_by_suggestion:
+                data["moved_by_suggestion"] = True
+            if player.current_room in SECRET_PASSAGES:
+                data["passage_to"] = SECRET_PASSAGES[player.current_room].value
+            return to_toon(data)
         
-        # Show exits
-        doors = game_state.get_room_doors(player.current_room)
-        if doors:
-            result += f"\n🚪 Room exits: {len(doors)} door(s)"
+        result = f"In: {player.current_room.value}, moves: {player.moves_remaining}"
+        if player.was_moved_by_suggestion:
+            result += " (moved by suggestion)"
         if player.current_room in SECRET_PASSAGES:
-            dest = SECRET_PASSAGES[player.current_room]
-            result += f"\n🔑 Secret passage to: {dest.value}"
+            result += f", passage to {SECRET_PASSAGES[player.current_room].value}"
         return result
     else:
         # Player is in hallway
-        if player.position:
-            result = f"📍 You are in the hallway at position ({player.position[0]}, {player.position[1]})\n"
-        else:
-            start_name = STARTING_POSITION_NAMES.get(player.character, "hallway")
-            result = f"📍 You are at your START position: {start_name}\n"
+        if TOON_ENABLED:
+            data = {
+                "location": "hallway",
+                "type": "hallway",
+                "moves_left": player.moves_remaining
+            }
+            if player.position:
+                data["pos"] = player.position
+            return to_toon(data)
         
-        result += f"   Moves remaining: {player.moves_remaining}\n"
-        result += f"\nYou must enter a room to make a suggestion."
+        if player.position:
+            result = f"Hallway at ({player.position[0]},{player.position[1]}), moves: {player.moves_remaining}"
+        else:
+            result = f"START position, moves: {player.moves_remaining}"
         
         # Show nearby rooms if they have moves
         if player.moves_remaining > 0:
             reachable = game_state.get_reachable_rooms(player)
             if reachable:
-                result += f"\n\n🚪 Rooms within reach:"
-                for room, distance, _ in reachable:
                     result += f"\n   • {room.value} ({distance} steps)"
         
         return result

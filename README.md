@@ -216,6 +216,7 @@ src/clue_game/
 ├── game_state.py        # Game state management (official rules)
 ├── crew.py              # CrewAI agent definitions
 ├── notebook.py          # Deterministic detective notebook
+├── toon_utils.py        # TOON format utilities for token efficiency
 ├── config/
 │   ├── agents.yaml      # Agent personalities & rules knowledge
 │   └── tasks.yaml       # Task definitions
@@ -273,11 +274,47 @@ At game conclusion, the moderator generates a comprehensive quality report showi
 
 This system ensures agents follow the perceive → reason → plan → act loop effectively!
 
+## Token Efficiency with TOON Format
+
+Tool outputs use **[TOON (Token-Oriented Object Notation)](https://github.com/toon-format/toon)** format by default, achieving **30-60% token reduction** compared to verbose text output. TOON combines YAML-like structure with CSV-style tabular data for maximum LLM efficiency.
+
+### Example Output Comparison
+
+**Before (Verbose Text):**
+```
+=== POSSIBLE SOLUTION ===
+
+SUSPECT: 3 possibilities - Miss Scarlet, Colonel Mustard, Mrs. White
+WEAPON: Candlestick (only possibility!)
+ROOM: 2 possibilities - Kitchen, Library
+
+🎯 Not ready to accuse yet
+```
+
+**After (TOON Format):**
+```
+can_accuse: false
+confirmed:
+  w: Candlestick
+possible:
+  s[3]: Miss Scarlet,Colonel Mustard,Mrs. White
+  r[2]: Kitchen,Library
+```
+
+### Configuration
+
+TOON format is enabled by default. To disable it (for debugging):
+```bash
+export CLUE_TOON_ENABLED=false
+```
+
 ## Environment Variables
 
 | Variable | Description |
 |----------|-------------|
 | `GOOGLE_API_KEY` | Your Google AI API key for Gemini 2.5 Flash |
+| `CLUE_TOON_ENABLED` | Enable TOON format for token efficiency (default: `true`) |
+| `CLUE_DEBUG` | Enable debug logging (default: `false`) |
 
 ## License
 

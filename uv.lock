@@ -521,6 +521,7 @@ dependencies = [
     { name = "crewai-tools" },
     { name = "pydantic" },
     { name = "python-dotenv" },
+    { name = "toon-format" },
 ]
 
 [package.optional-dependencies]
@@ -537,6 +538,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
+    { name = "toon-format", git = "https://github.com/toon-format/toon-python.git" },
 ]
 provides-extras = ["dev"]
 
@@ -3587,6 +3589,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/d4/19/b65f1a088ee23e37c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c4/ac/ce90573ba446a9bbe65838ded066a805234d159b4446ae9f8ec5bbd36cbd/tomli_w-1.1.0-py3-none-any.whl", hash = "sha256:1403179c78193e3184bfaade390ddbd071cba48a32a2e62ba11aae47490c63f7", size = 6440, upload-time = "2024-10-08T11:13:27.897Z" },
 ]
+
+[[package]]
+name = "toon-format"
+version = "0.9.0b1"
+source = { git = "https://github.com/toon-format/toon-python.git#6b26984a01279defdcf40ab9d09bc418fe8133ac" }
 
 [[package]]
 name = "tqdm"

@@ -12,6 +12,7 @@ dependencies = [
     "crewai-tools>=1.7.0",
     "pydantic>=2.11.10",
     "python-dotenv>=1.1.1",
+    "toon_format @ git+https://github.com/toon-format/toon-python.git",
 ]
 
 [project.optional-dependencies]
@@ -22,6 +23,9 @@ dev = [
 
 [project.scripts]
 clue-game = "clue_game:main"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/clue_game"]

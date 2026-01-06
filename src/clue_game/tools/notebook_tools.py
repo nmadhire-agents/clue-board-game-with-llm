@@ -4,11 +4,14 @@ Detective Notebook Tools - CrewAI tools for the deterministic notebook.
 These tools allow agents to interact with their Detective Notebook,
 which maintains a hard-coded grid of card ownership instead of relying
 on LLM memory (which degrades over time).
+
+Outputs use TOON format when enabled for token efficiency.
 """
 
 from crewai.tools import tool
 from clue_game.notebook import get_notebook, DetectiveNotebook
 from clue_game.game_state import get_game_state
+from clue_game.toon_utils import to_toon, TOON_ENABLED
 
 
 @tool("Initialize My Notebook")
@@ -37,13 +40,16 @@ def initialize_notebook(player_name: str) -> str:
     my_card_names = [c.name for c in player.cards]
     notebook.record_my_cards(my_card_names)
     
-    result = f"✓ Notebook initialized for {player_name}\n\n"
-    result += f"Your cards ({len(my_card_names)} total):\n"
-    for card in player.cards:
-        result += f"  - {card.name} ({card.card_type})\n"
-    result += "\nThese cards are marked as YOURS and eliminated from the solution."
-    result += "\n\nUse 'View Notebook Grid' to see your full deduction grid."
+    if TOON_ENABLED:
+        return to_toon({
+            "status": "initialized",
+            "player": player_name,
+            "my_cards": [{"name": c.name, "type": c.card_type[0]} for c in player.cards]
+        })
     
+    result = f"Notebook initialized for {player_name}\n"
+    result += f"Cards ({len(my_card_names)}): "
+    result += ", ".join(f"{c.name}({c.card_type[0]})" for c in player.cards)
     return result
 
 
@@ -67,9 +73,11 @@ def mark_player_has_card(player_name: str, card_name: str, owner_player: str) ->
     
     # Check if this leads to any solution deductions
     possible = notebook.get_possible_solution()
-    if "CONFIRMED" in possible or "only possibility" in possible:
-        result += "\n\n⚡ This deduction may have narrowed the solution!\n"
-        result += possible
+    if TOON_ENABLED and ("can_accuse" in possible or "CONFIRMED" in possible):
+        return to_toon({
+            "marked": {"card": card_name, "owner": owner_player},
+            "solution_update": True
+        })
     
     return result
 
@@ -246,25 +254,36 @@ def get_accusation_recommendation(player_name: str) -> str:
     notebook = get_notebook(player_name)
     rec = notebook.get_accusation_recommendation()
     
-    if rec["can_accuse"]:
-        result = "🎯 YOU CAN MAKE AN ACCUSATION!\n\n"
-        result += f"Based on your notebook, the solution is:\n"
-        result += f"  SUSPECT: {rec['suspect']}\n"
-        result += f"  WEAPON: {rec['weapon']}\n"
-        result += f"  ROOM: {rec['room']}\n\n"
-        result += "Use 'Make Accusation' with these exact values to win!"
-    else:
-        result = "⚠️ NOT READY TO ACCUSE YET\n\n"
-        result += f"Reason: {rec['reason']}\n\n"
-        if rec.get("possible_suspects"):
-            result += f"Possible suspects: {', '.join(rec['possible_suspects'])}\n"
-        if rec.get("possible_weapons"):
-            result += f"Possible weapons: {', '.join(rec['possible_weapons'])}\n"
-        if rec.get("possible_rooms"):
-            result += f"Possible rooms: {', '.join(rec['possible_rooms'])}\n"
-        result += "\nKeep making suggestions to narrow down the possibilities!"
+    if TOON_ENABLED:
+        if rec["can_accuse"]:
+            return to_toon({
+                "can_accuse": True,
+                "accuse": {"s": rec['suspect'], "w": rec['weapon'], "r": rec['room']}
+            })
+        else:
+            data = {
+                "can_accuse": False,
+                "reason": rec['reason']
+            }
+            if rec.get("possible_suspects"):
+                data["possible_s"] = rec["possible_suspects"]
+            if rec.get("possible_weapons"):
+                data["possible_w"] = rec["possible_weapons"]
+            if rec.get("possible_rooms"):
+                data["possible_r"] = rec["possible_rooms"]
+            return to_toon(data)
     
-    return result
+    if rec["can_accuse"]:
+        return f"CAN ACCUSE: {rec['suspect']}, {rec['weapon']}, {rec['room']}"
+    else:
+        result = f"NOT READY: {rec['reason']}\n"
+        if rec.get("possible_suspects"):
+            result += f"S: {', '.join(rec['possible_suspects'])}\n"
+        if rec.get("possible_weapons"):
+            result += f"W: {', '.join(rec['possible_weapons'])}\n"
+        if rec.get("possible_rooms"):
+            result += f"R: {', '.join(rec['possible_rooms'])}"
+        return result
 
 
 @tool("Get Event Log")

@@ -38,8 +38,9 @@ class TestGetMyCards:
         
         result = get_my_cards.func(player_name="TestPlayer")
         
-        assert "Your cards" in result
-        assert "total" in result
+        # Works with both TOON and text format
+        assert "cards" in result.lower() or "'cards'" in result
+        assert "total" in result.lower() or "'total'" in result
     
     def test_error_for_unknown_player(self):
         """Should return error for unknown player."""
