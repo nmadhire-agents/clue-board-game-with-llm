@@ -310,8 +310,9 @@ class TestGetGameQualityReport:
         
         # Check for grades (A, B, C, D or Excellent, Good, etc.)
         assert "Grade" in result or "grade" in result
-        # Excellent player should have better grade than poor player
-        assert result.index("ExcellentPlayer") < result.index("PoorPlayer")
+        # Excellent player should have grade A, Poor player grade D
+        assert "ExcellentPlayer" in result and "Grade: A" in result
+        assert "PoorPlayer" in result and ("Grade: D" in result or "Grade: F" in result)
     
     def test_shows_overall_statistics(self):
         """Should show aggregate statistics."""
