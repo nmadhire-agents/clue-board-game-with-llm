@@ -16,6 +16,10 @@ os.environ["CREWAI_TRACING_ENABLED"] = "false"
 
 from dotenv import load_dotenv
 
+# MLflow tracing for LLM observability
+import mlflow
+import mlflow.crewai
+
 from clue_game.game_state import get_game_state, reset_game_state, STARTING_POSITION_NAMES
 from clue_game.notebook import reset_all_notebooks
 from clue_game.crew import (
@@ -27,6 +31,11 @@ from clue_game.crew import (
 
 # Load environment variables
 load_dotenv()
+
+# MLflow tracing configuration
+MLFLOW_ENABLED = os.environ.get("CLUE_MLFLOW_ENABLED", "true").lower() in ("1", "true", "yes")
+MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "mlruns")
+MLFLOW_EXPERIMENT_NAME = os.environ.get("MLFLOW_EXPERIMENT_NAME", "Clue-Board-Game")
 
 # Configure logging for debugging LLM issues
 logging.basicConfig(
@@ -121,6 +130,46 @@ def _patch_gemini_completion():
 # Apply patches when module loads
 _patch_crewai_printer()
 _patch_gemini_completion()
+
+
+def setup_mlflow_tracing():
+    """
+    Set up MLflow tracing for LLM observability.
+    
+    MLflow captures:
+    - Tasks and agents executing each task
+    - Every LLM call with input prompts, completion responses, and metadata
+    - Memory load and write operations
+    - Latency of each operation
+    - Token usage for each LLM call
+    - Any exceptions if raised
+    
+    See: https://mlflow.org/docs/latest/genai/tracing/integrations/listing/crewai/
+    """
+    if not MLFLOW_ENABLED:
+        logger.info("MLflow tracing disabled (CLUE_MLFLOW_ENABLED=false)")
+        return
+    
+    try:
+        # Set tracking URI (local by default, can be configured for remote server)
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        logger.info(f"MLflow tracking URI: {MLFLOW_TRACKING_URI}")
+        
+        # Set experiment name for organizing traces
+        mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+        logger.info(f"MLflow experiment: {MLFLOW_EXPERIMENT_NAME}")
+        
+        # Enable auto-tracing for CrewAI
+        mlflow.crewai.autolog()
+        logger.info("MLflow CrewAI auto-tracing enabled")
+        
+        print(f"📊 MLflow tracing enabled - View traces at: {MLFLOW_TRACKING_URI}")
+        print(f"   Experiment: {MLFLOW_EXPERIMENT_NAME}")
+        print(f"   Run 'mlflow ui' to view traces in browser")
+        
+    except Exception as e:
+        logger.warning(f"Could not set up MLflow tracing: {e}")
+        print(f"⚠️ MLflow tracing setup failed: {e}")
 
 
 def get_gemini_response_details(exception):
@@ -519,6 +568,9 @@ def main():
         print("  GOOGLE_API_KEY=your-key-here")
         print("Get your API key at: https://aistudio.google.com/apikey")
         sys.exit(1)
+    
+    # Set up MLflow tracing for LLM observability
+    setup_mlflow_tracing()
     
     # Parse command line arguments
     if len(sys.argv) > 1:

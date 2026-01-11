@@ -356,12 +356,56 @@ TOON format is enabled by default. To disable it (for debugging):
 export CLUE_TOON_ENABLED=false
 ```
 
+## LLM Observability with MLflow
+
+This project integrates [MLflow Tracing](https://mlflow.org/docs/latest/genai/tracing/) for comprehensive LLM observability. MLflow automatically captures:
+
+- **Tasks and agents** executing each task
+- **Every LLM call** with input prompts, completion responses, and metadata
+- **Memory operations** (load and write)
+- **Latency** of each operation
+- **Token usage** for each LLM call
+- **Exceptions** if raised
+
+### Viewing Traces
+
+After running a game, view the traces in the MLflow UI:
+
+```bash
+# Start the MLflow UI server
+mlflow ui
+
+# Open browser to http://localhost:5000
+```
+
+You'll see detailed traces for each agent's reasoning, LLM calls, and tool usage:
+
+![MLflow Trace Example](https://mlflow.org/docs/latest/assets/images/genai-trace-debug-405f9c8b61d5f89fb1d3891242fcd265.png)
+
+### Configuration
+
+MLflow tracing is enabled by default. Configure via environment variables:
+
+```bash
+# Disable MLflow tracing
+export CLUE_MLFLOW_ENABLED=false
+
+# Use remote MLflow tracking server
+export MLFLOW_TRACKING_URI=http://your-mlflow-server:5000
+
+# Custom experiment name
+export MLFLOW_EXPERIMENT_NAME=My-Clue-Experiment
+```
+
 ## Environment Variables
 
 | Variable | Description |
 |----------|-------------|
 | `GOOGLE_API_KEY` | Your Google AI API key for Gemini 2.5 Flash |
 | `CLUE_TOON_ENABLED` | Enable TOON format for token efficiency (default: `true`) |
+| `CLUE_MLFLOW_ENABLED` | Enable MLflow tracing for LLM observability (default: `true`) |
+| `MLFLOW_TRACKING_URI` | MLflow tracking server URI (default: `mlruns` - local) |
+| `MLFLOW_EXPERIMENT_NAME` | MLflow experiment name (default: `Clue-Board-Game`) |
 | `CLUE_DEBUG` | Enable debug logging (default: `false`) |
 
 ## License

@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "crewai[google-genai]>=1.7.0",
     "crewai-tools>=1.7.0",
+    "mlflow>=3.5.0",
     "pydantic>=2.11.10",
     "python-dotenv>=1.1.1",
     "toon_format @ git+https://github.com/toon-format/toon-python.git",
