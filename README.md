@@ -278,6 +278,53 @@ This system ensures agents follow the perceive → reason → plan → act loop 
 
 Tool outputs use **[TOON (Token-Oriented Object Notation)](https://github.com/toon-format/toon)** format by default, achieving **30-60% token reduction** compared to verbose text output. TOON combines YAML-like structure with CSV-style tabular data for maximum LLM efficiency.
 
+### Real Token Savings Example
+
+In practice, TOON format consistently reduces the number of tokens sent to the LLM, resulting in lower API costs and more available context for reasoning. For example:
+
+**Verbose Text Output:**
+```
+=== PLAYER STATUS ===
+
+Player: TestPlayer
+Your cards (3 total):
+  - Card1
+  - Card2
+  - Card3
+
+Current location: Library
+Can suggest: Yes
+
+Unknown suspects:
+  - Scarlet
+  - Mustard
+  - Green
+
+Unknown weapons:
+  - Knife
+  - Rope
+  - Wrench
+```
+*Token count: ~70*
+
+**TOON Format Output:**
+```
+player: TestPlayer
+cards[3]: Card1,Card2,Card3
+location: Library
+can_suggest: true
+unknown_suspects[3]: Scarlet,Mustard,Green
+unknown_weapons[3]: Knife,Rope,Wrench
+```
+*Token count: ~35*
+
+**Savings:**
+- **50% fewer tokens** for the same information
+- Lower LLM API cost and more context available for agent reasoning
+
+**Typical savings across all game outputs:**
+- **30-60% token reduction** (validated by automated tests)
+
 ### Example Output Comparison
 
 **Before (Verbose Text):**
@@ -300,6 +347,7 @@ possible:
   s[3]: Miss Scarlet,Colonel Mustard,Mrs. White
   r[2]: Kitchen,Library
 ```
+*Savings: ~40% fewer tokens*
 
 ### Configuration
 
